@@ -17,6 +17,23 @@ class ResponseGenerator:
         self._provider = provider
         self._timeout = timeout
 
+    async def generate_stream(self, query: str, context_chunks: list[dict]):
+        """스트리밍 방식으로 LLM 응답을 생성합니다.
+
+        Args:
+            query: 사용자 질의
+            context_chunks: 컨텍스트로 사용할 청크 리스트
+
+        Yields:
+            응답 텍스트 토큰 (str)
+        """
+        context = "\n\n".join([c["text"] for c in context_chunks])
+        prompt = self._build_prompt(query, context)
+        llm = self._get_llm()
+        async for chunk in llm.astream([HumanMessage(content=prompt)]):
+            if chunk.content:
+                yield chunk.content
+
     def generate(self, query: str, context_chunks: list[dict]) -> dict:
         """컨텍스트 기반으로 LLM 응답을 생성합니다.
 

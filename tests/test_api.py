@@ -336,3 +336,62 @@ class TestEvaluateEndpoint:
             },
         )
         assert "average" in response.json()
+
+
+class TestQueryStreamEndpoint:
+    """SSE 스트리밍 질의 엔드포인트 테스트"""
+
+    def test_query_stream_returns_200(self, client, mock_vectorstore):
+        """스트리밍 질의 요청이 200을 반환"""
+        async def mock_astream(messages):
+            chunk = MagicMock()
+            chunk.content = "응답"
+            yield chunk
+
+        mock_retriever = MagicMock()
+        mock_retriever.retrieve.return_value = [{"text": "컨텍스트", "metadata": {}}]
+        mock_reranker = MagicMock()
+        mock_reranker.rerank.return_value = [{"text": "컨텍스트", "metadata": {}}]
+        mock_llm = MagicMock()
+        mock_llm.astream = mock_astream
+
+        with patch("pipeline.generator.ChatOllama", return_value=mock_llm):
+            from pipeline.generator import ResponseGenerator
+            generator = ResponseGenerator(provider="ollama")
+            query_module.set_streaming_dependencies(mock_retriever, generator)
+            query_module.set_dependencies(mock_vectorstore, MagicMock(is_loaded=False), mock_reranker)
+
+            response = client.post(
+                "/query/stream",
+                json={"query": "파이썬이란?"},
+            )
+            assert response.status_code == 200
+
+    def test_query_stream_content_type_is_event_stream(self, client, mock_vectorstore):
+        """스트리밍 응답의 Content-Type이 text/event-stream"""
+        mock_retriever = MagicMock()
+        mock_retriever.retrieve.return_value = []
+        mock_reranker = MagicMock()
+        mock_reranker.rerank.return_value = []
+
+        async def mock_astream(messages):
+            chunk = MagicMock()
+            chunk.content = "토큰"
+            yield chunk
+
+        mock_llm = MagicMock()
+        mock_llm.astream = mock_astream
+
+        with patch("pipeline.generator.ChatOllama", return_value=mock_llm):
+            from pipeline.generator import ResponseGenerator
+            generator = ResponseGenerator(provider="ollama")
+            query_module.set_streaming_dependencies(mock_retriever, generator)
+            query_module.set_dependencies(mock_vectorstore, MagicMock(is_loaded=False), mock_reranker)
+
+            response = client.post(
+                "/query/stream",
+                json={"query": "질문"},
+            )
+            assert "text/event-stream" in response.headers.get("content-type", "")
+
+

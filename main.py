@@ -20,7 +20,12 @@ from pipeline.graphs.ingest_graph import create_ingest_graph
 from pipeline.graphs.query_graph import create_query_graph
 
 from api.ingest import router as ingest_router, set_ingest_graph
-from api.query import router as query_router, set_query_graph, set_dependencies
+from api.query import (
+    router as query_router,
+    set_query_graph,
+    set_dependencies,
+    set_streaming_dependencies,
+)
 from api.evaluate import router as evaluate_router, set_evaluator
 from api.index import router as index_router, set_vectorstore as set_index_vectorstore
 from api.conversations import router as conversations_router, set_conversation_store
@@ -83,6 +88,7 @@ _conversation_store = ConversationStore(db_path=settings.CONVERSATIONS_DB)
 set_ingest_graph(_ingest_graph)
 set_query_graph(_query_graph)
 set_dependencies(_vectorstore, _embedder, _reranker)
+set_streaming_dependencies(_retriever, _generator)
 set_evaluator(_evaluator)
 set_index_vectorstore(_vectorstore)
 set_conversation_store(_conversation_store)

@@ -83,16 +83,23 @@ class DocumentParser:
             # .txt, .md
             text = self._parse_text(file_path)
 
+        # 복잡한 문서 형식에서 빈 결과 시 UnstructuredFileLoader로 폴백
+        _unstructured_fallback_exts = {".pdf", ".docx", ".html"}
+        if (not text or not text.strip()) and ext in _unstructured_fallback_exts:
+            try:
+                text = self._parse_with_unstructured(file_path)
+            except Exception:
+                pass
+
         if not text or not text.strip():
             raise EmptyFileError(f"파일에서 텍스트를 추출할 수 없습니다: {file_path}")
 
         return text
 
     def _parse_pdf(self, file_path: Path) -> str:
-        """PyMuPDF를 사용하여 PDF 파일에서 텍스트를 추출합니다.
+        """PDF 파일에서 텍스트를 추출합니다.
 
-        각 페이지에서 텍스트를 직접 추출하고, 텍스트가 없는 페이지(스캔 이미지 등)는
-        OCR 폴백을 통해 텍스트를 인식합니다.
+        PyMuPDF로 네이티브 텍스트를 추출하고, 스캔 페이지는 OCR로 처리합니다.
         """
         import fitz  # PyMuPDF
 
@@ -116,12 +123,31 @@ class DocumentParser:
         return "\n".join(text_parts)
 
     def _parse_docx(self, file_path: Path) -> str:
-        """python-docx를 사용하여 DOCX 파일에서 텍스트를 추출합니다."""
+        """python-docx를 사용하여 DOCX 파일에서 텍스트를 추출합니다.
+
+        단락과 테이블 내용을 모두 추출합니다. 병합 셀은 중복 제거 처리합니다.
+        """
         import docx
 
         doc = docx.Document(str(file_path))
-        paragraphs = [para.text for para in doc.paragraphs if para.text.strip()]
-        return "\n".join(paragraphs)
+        text_parts = []
+
+        for para in doc.paragraphs:
+            if para.text.strip():
+                text_parts.append(para.text)
+
+        for table in doc.tables:
+            for row in table.rows:
+                row_texts = [cell.text.strip() for cell in row.cells if cell.text.strip()]
+                # 병합 셀로 인한 연속 중복 제거
+                deduped = [row_texts[0]] if row_texts else []
+                for t in row_texts[1:]:
+                    if t != deduped[-1]:
+                        deduped.append(t)
+                if deduped:
+                    text_parts.append(" | ".join(deduped))
+
+        return "\n".join(text_parts)
 
     def _parse_text(self, file_path: Path) -> str:
         """TXT 또는 MD 파일을 읽어 텍스트를 반환합니다."""
@@ -145,10 +171,9 @@ class DocumentParser:
         Returns:
             인식된 텍스트를 줄바꿈으로 연결한 문자열
         """
-        reader = self._get_ocr_reader()
-        # detail=0 으로 텍스트 문자열 목록만 반환
-        results = reader.readtext(str(file_path), detail=0)
-        return "\n".join(results)
+        # Windows 한글 경로 문제: cv2.imread는 ANSI API로 열어 한글 경로를 처리 못함
+        # 파일을 bytes로 읽은 뒤 numpy 배열로 변환하여 전달
+        return self._ocr_from_bytes(file_path.read_bytes())
 
     def _ocr_from_bytes(self, img_bytes: bytes) -> str:
         """바이트 형태의 이미지 데이터에서 EasyOCR로 텍스트를 추출합니다.
@@ -162,10 +187,33 @@ class DocumentParser:
         Returns:
             인식된 텍스트를 줄바꿈으로 연결한 문자열
         """
+        import numpy as np
+        import cv2
+
         reader = self._get_ocr_reader()
-        # detail=0 으로 텍스트 문자열 목록만 반환
-        results = reader.readtext(img_bytes, detail=0)
+        # bytes → numpy 배열로 변환하여 cv2.imread 경로 문제 우회
+        nparr = np.frombuffer(img_bytes, dtype=np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        results = reader.readtext(img, detail=0)
         return "\n".join(results)
+
+    def _parse_with_unstructured(self, file_path: Path) -> str:
+        """UnstructuredFileLoader를 사용하여 파일에서 텍스트를 추출합니다.
+
+        langchain-community의 UnstructuredFileLoader를 활용하여
+        다양한 파일 형식에서 텍스트를 추출합니다. 기본 파서의 폴백으로 사용됩니다.
+
+        Args:
+            file_path: 파싱할 파일 경로
+
+        Returns:
+            추출된 텍스트 문자열 (문서 단위로 개행 구분)
+        """
+        from langchain_community.document_loaders import UnstructuredFileLoader
+
+        loader = UnstructuredFileLoader(str(file_path), mode="single")
+        docs = loader.load()
+        return "\n\n".join(doc.page_content for doc in docs if doc.page_content.strip())
 
     def is_supported(self, file_path: Path) -> bool:
         """파일 확장자가 지원되는 형식인지 확인합니다."""

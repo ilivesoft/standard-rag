@@ -112,6 +112,53 @@ class TestResponseGeneratorProvider:
             mock_openai.assert_called_once()
 
 
+class TestResponseGeneratorStream:
+    """generate_stream 메서드 테스트"""
+
+    @pytest.mark.asyncio
+    async def test_generate_stream_yields_tokens(self, sample_chunks):
+        """generate_stream이 토큰을 yield"""
+        async def mock_astream(messages):
+            for token in ["파이썬은", " 범용", " 언어입니다."]:
+                chunk = MagicMock()
+                chunk.content = token
+                yield chunk
+
+        with patch("pipeline.generator.ChatOllama") as mock_cls:
+            mock_llm = MagicMock()
+            mock_llm.astream = mock_astream
+            mock_cls.return_value = mock_llm
+
+            generator = ResponseGenerator(provider="ollama")
+            tokens = []
+            async for token in generator.generate_stream("파이썬이란?", sample_chunks):
+                tokens.append(token)
+
+            assert len(tokens) > 0
+            assert all(isinstance(t, str) for t in tokens)
+
+    @pytest.mark.asyncio
+    async def test_generate_stream_skips_empty_tokens(self, sample_chunks):
+        """빈 content 토큰은 yield하지 않음"""
+        async def mock_astream(messages):
+            for token in ["텍스트", "", "더 많은 텍스트"]:
+                chunk = MagicMock()
+                chunk.content = token
+                yield chunk
+
+        with patch("pipeline.generator.ChatOllama") as mock_cls:
+            mock_llm = MagicMock()
+            mock_llm.astream = mock_astream
+            mock_cls.return_value = mock_llm
+
+            generator = ResponseGenerator(provider="ollama")
+            tokens = []
+            async for token in generator.generate_stream("질문", sample_chunks):
+                tokens.append(token)
+
+            assert "" not in tokens
+
+
 class TestResponseGeneratorBuildPrompt:
     """_build_prompt 메서드 테스트"""
 

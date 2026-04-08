@@ -1,5 +1,5 @@
 # 전역 설정 모듈 - pydantic-settings 기반 환경 변수 관리
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -50,11 +50,6 @@ class Settings(BaseSettings):
     # 평가 결과 저장 경로
     EVAL_RESULTS_DIR: str = "./storage/eval_results"
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
 
 
 # 전역 싱글턴 인스턴스

@@ -1,5 +1,6 @@
-# 질의 응답 API - /query, /collections, /health 엔드포인트
+# 질의 응답 API - /query, /query/stream, /collections, /health 엔드포인트
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from models.request import QueryRequest
 from models.response import QueryResponse, HealthResponse
 
@@ -8,6 +9,8 @@ _query_graph = None
 _vectorstore = None
 _embedder = None
 _reranker = None
+_retriever = None
+_generator = None
 
 
 def get_query_graph():
@@ -25,6 +28,13 @@ def set_dependencies(vectorstore, embedder, reranker):
     _vectorstore = vectorstore
     _embedder = embedder
     _reranker = reranker
+
+
+def set_streaming_dependencies(retriever, generator):
+    """SSE 스트리밍용 의존성 설정"""
+    global _retriever, _generator
+    _retriever = retriever
+    _generator = generator
 
 
 router = APIRouter(tags=["query"])
@@ -69,6 +79,40 @@ async def query(request: QueryRequest):
         retrieved_count=len(result.get("retrieved_chunks", [])),
         reranked_count=len(result.get("reranked_chunks", [])),
     )
+
+
+@router.post("/query/stream")
+async def query_stream(request: QueryRequest):
+    """SSE 스트리밍으로 질의 응답을 생성합니다.
+
+    Args:
+        request: QueryRequest (query, top_k, top_n, alpha)
+
+    Returns:
+        StreamingResponse: text/event-stream 형식의 SSE 응답
+    """
+    if _retriever is None or _reranker is None or _generator is None:
+        raise HTTPException(status_code=500, detail="스트리밍 의존성이 초기화되지 않았습니다.")
+
+    if _vectorstore is not None and _vectorstore.count() == 0:
+        async def empty_stream():
+            yield "data: 인덱싱된 문서가 없습니다. 먼저 문서를 업로드하여 인덱싱해 주세요.\n\n"
+            yield "data: [DONE]\n\n"
+        return StreamingResponse(empty_stream(), media_type="text/event-stream")
+
+    chunks = _retriever.retrieve(
+        request.query,
+        top_k=request.top_k,
+        alpha=request.alpha,
+    )
+    reranked = _reranker.rerank(request.query, chunks, top_n=request.top_n)
+
+    async def token_stream():
+        async for token in _generator.generate_stream(request.query, reranked):
+            yield f"data: {token}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(token_stream(), media_type="text/event-stream")
 
 
 @router.get("/collections")

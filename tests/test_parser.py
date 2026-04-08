@@ -109,6 +109,7 @@ class TestDocumentParserDocx:
         mock_para2 = MagicMock()
         mock_para2.text = "DOCX 두 번째 단락"
         mock_doc.paragraphs = [mock_para1, mock_para2]
+        mock_doc.tables = []
 
         with patch("docx.Document", return_value=mock_doc):
             result = parser.parse(docx_file)
@@ -145,6 +146,108 @@ class TestDocumentParserErrors:
         missing = tmp_path / "missing.txt"
         with pytest.raises(FileNotFoundError):
             parser.parse(missing)
+
+
+class TestUnstructuredParser:
+    """UnstructuredFileLoader 기반 파싱 테스트"""
+
+    def test_parse_with_unstructured_returns_text(self, parser, tmp_path):
+        """_parse_with_unstructured가 텍스트를 반환"""
+        from unittest.mock import MagicMock, patch
+        from langchain_core.documents import Document
+
+        txt_file = tmp_path / "test.txt"
+        txt_file.write_text("언스트럭처드 텍스트", encoding="utf-8")
+
+        mock_doc = Document(page_content="언스트럭처드 텍스트")
+        mock_loader = MagicMock()
+        mock_loader.load.return_value = [mock_doc]
+
+        with patch("langchain_community.document_loaders.UnstructuredFileLoader", return_value=mock_loader):
+            result = parser._parse_with_unstructured(txt_file)
+
+        assert "언스트럭처드 텍스트" in result
+
+    def test_parse_with_unstructured_joins_multiple_docs(self, parser, tmp_path):
+        """여러 Document 반환 시 개행으로 결합"""
+        from unittest.mock import MagicMock, patch
+        from langchain_core.documents import Document
+
+        pdf_file = tmp_path / "test.pdf"
+        pdf_file.write_bytes(b"dummy")
+
+        docs = [
+            Document(page_content="첫 번째 섹션"),
+            Document(page_content="두 번째 섹션"),
+        ]
+        mock_loader = MagicMock()
+        mock_loader.load.return_value = docs
+
+        with patch("langchain_community.document_loaders.UnstructuredFileLoader", return_value=mock_loader):
+            result = parser._parse_with_unstructured(pdf_file)
+
+        assert "첫 번째 섹션" in result
+        assert "두 번째 섹션" in result
+
+    def test_parse_with_unstructured_skips_empty_docs(self, parser, tmp_path):
+        """빈 page_content를 가진 Document는 결과에서 제외"""
+        from unittest.mock import MagicMock, patch
+        from langchain_core.documents import Document
+
+        txt_file = tmp_path / "test.txt"
+        txt_file.write_text("내용", encoding="utf-8")
+
+        docs = [
+            Document(page_content="유효한 내용"),
+            Document(page_content="   "),
+            Document(page_content=""),
+        ]
+        mock_loader = MagicMock()
+        mock_loader.load.return_value = docs
+
+        with patch("langchain_community.document_loaders.UnstructuredFileLoader", return_value=mock_loader):
+            result = parser._parse_with_unstructured(txt_file)
+
+        assert result == "유효한 내용"
+
+    def test_parse_falls_back_to_unstructured_on_empty_primary(self, parser, tmp_path):
+        """기본 파서가 빈 결과를 반환할 때 Unstructured 폴백 동작"""
+        from unittest.mock import MagicMock, patch
+        from langchain_core.documents import Document
+
+        docx_file = tmp_path / "test.docx"
+        docx_file.write_bytes(b"dummy")
+
+        # 기본 docx 파서가 빈 결과를 반환하도록 설정
+        mock_doc = MagicMock()
+        mock_doc.paragraphs = []
+        mock_doc.tables = []
+
+        fallback_doc = Document(page_content="언스트럭처드로 추출된 내용")
+        mock_loader = MagicMock()
+        mock_loader.load.return_value = [fallback_doc]
+
+        with patch("docx.Document", return_value=mock_doc):
+            with patch("langchain_community.document_loaders.UnstructuredFileLoader", return_value=mock_loader):
+                result = parser.parse(docx_file)
+
+        assert "언스트럭처드로 추출된 내용" in result
+
+    def test_parse_with_unstructured_mode_is_single(self, parser, tmp_path):
+        """UnstructuredFileLoader가 mode='single'로 초기화됨을 검증"""
+        from unittest.mock import MagicMock, patch
+        from langchain_core.documents import Document
+
+        txt_file = tmp_path / "test.txt"
+        txt_file.write_text("내용", encoding="utf-8")
+
+        mock_loader = MagicMock()
+        mock_loader.load.return_value = [Document(page_content="내용")]
+
+        with patch("langchain_community.document_loaders.UnstructuredFileLoader", return_value=mock_loader) as mock_cls:
+            parser._parse_with_unstructured(txt_file)
+
+        mock_cls.assert_called_once_with(str(txt_file), mode="single")
 
 
 class TestDocumentParserIsSupported:

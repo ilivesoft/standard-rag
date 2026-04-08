@@ -1,5 +1,5 @@
 # RAG 평가 모듈 - RAGAS 기반 답변 품질 평가
-from typing import Optional
+from typing import Any, Optional
 from datasets import Dataset
 from ragas import evaluate
 try:
@@ -56,7 +56,7 @@ class RAGEvaluator:
             metrics.append(context_recall)
 
         dataset = Dataset.from_dict(data)
-        result = evaluate(dataset, metrics=metrics)
+        result: Any = evaluate(dataset, metrics=metrics)  # type: ignore[arg-type]
 
         output = {
             "faithfulness": result["faithfulness"][0],
@@ -98,7 +98,7 @@ class RAGEvaluator:
             metrics.append(context_recall)
 
         dataset = Dataset.from_dict(data)
-        result = evaluate(dataset, metrics=metrics)
+        result: Any = evaluate(dataset, metrics=metrics)  # type: ignore[arg-type]
 
         # 개별 결과 구성
         results = []

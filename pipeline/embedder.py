@@ -20,7 +20,7 @@ class DocumentEmbedder:
         """
         self._model_name = model_name
         self._device = device
-        self._model = None  # 지연 로딩
+        self._model: "SentenceTransformer | None" = None  # 지연 로딩
 
     def _load_model(self) -> None:
         """모델을 지연 로딩합니다."""

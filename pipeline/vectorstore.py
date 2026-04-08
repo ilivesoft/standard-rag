@@ -43,7 +43,7 @@ class VectorStore:
         self._collection.add(
             ids=ids,
             documents=texts,
-            embeddings=embeddings,
+            embeddings=embeddings,  # type: ignore[arg-type]
             metadatas=metadatas,
         )
         return len(chunks)
@@ -66,15 +66,15 @@ class VectorStore:
 
         n_results = min(top_k, count)
         results = self._collection.query(
-            query_embeddings=[query_embedding],
+            query_embeddings=[query_embedding],  # type: ignore[arg-type]
             n_results=n_results,
             include=["documents", "metadatas", "distances"],
         )
 
         output = []
-        documents = results.get("documents", [[]])[0]
-        metadatas = results.get("metadatas", [[]])[0]
-        distances = results.get("distances", [[]])[0]
+        documents = (results["documents"] or [[]])[0]
+        metadatas = (results["metadatas"] or [[]])[0]
+        distances = (results["distances"] or [[]])[0]
 
         for doc, meta, dist in zip(documents, metadatas, distances):
             output.append({
@@ -91,7 +91,7 @@ class VectorStore:
             return []
 
         results = self._collection.get(include=["documents"])
-        return results.get("documents", [])
+        return results["documents"] or []
 
     # @MX:ANCHOR: [AUTO] 컬렉션 크기 확인 - query_graph, search, health check 등 다수 호출
     # @MX:REASON: fan_in >= 3 (query_graph empty check, search 내부, api/query health 등)
@@ -115,7 +115,7 @@ class VectorStore:
         # 소스별 청크 수 집계
         source_counts: dict[str, int] = {}
         for meta in metadatas:
-            source = (meta or {}).get("source", "unknown")
+            source = str((meta or {}).get("source", "unknown"))
             source_counts[source] = source_counts.get(source, 0) + 1
 
         return [{"source": src, "chunk_count": cnt} for src, cnt in source_counts.items()]

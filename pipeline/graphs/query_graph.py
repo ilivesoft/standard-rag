@@ -91,4 +91,11 @@ def create_query_graph(retriever, reranker, generator, vectorstore):
     graph.add_edge("generate", END)
     graph.add_edge("no_docs", END)
 
-    return graph.compile()
+    compiled = graph.compile()
+
+    # Mermaid 코드로 그래프 시각화하여 파일로 저장
+    mermaid_code = compiled.get_graph().draw_mermaid()
+    with open("pipeline/graphs/query_graph.mmd", "w", encoding="utf-8") as f:
+        f.write(mermaid_code)
+
+    return compiled

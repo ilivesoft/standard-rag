@@ -83,5 +83,12 @@ def create_ingest_graph(parser, cleaner, chunker, embedder, vectorstore):
     graph.add_edge("chunk", "embed")
     graph.add_edge("embed", "store")
     graph.add_edge("store", END)
+    
+    compiled = graph.compile()
 
-    return graph.compile()
+    # Mermaid 코드로 그래프 시각화하여 파일로 저장
+    mermaid_code = compiled.get_graph().draw_mermaid()
+    with open("pipeline/graphs/ingest_graph.mmd", "w", encoding="utf-8") as f:
+        f.write(mermaid_code)
+
+    return compiled

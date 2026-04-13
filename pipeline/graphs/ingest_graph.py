@@ -1,7 +1,8 @@
-# LangGraph 인덱싱 워크플로우 - parse→clean→chunk→embed→store 순서 실행
+# LangGraph 인덱싱 워크플로우 - parse→clean→chunk→tokenize→embed→store 순서 실행
 from pathlib import Path
 from langgraph.graph import StateGraph, END
 from pipeline.graphs.state import IngestState
+from pipeline.tokenizer import tokenize_korean
 
 
 def create_ingest_graph(parser, cleaner, chunker, embedder, vectorstore):
@@ -48,6 +49,20 @@ def create_ingest_graph(parser, cleaner, chunker, embedder, vectorstore):
         except Exception as e:
             return {**state, "error": str(e)}
 
+    def tokenize_node(state: IngestState) -> IngestState:
+        """청크 텍스트를 BM25 검색용으로 토큰화하여 메타데이터에 저장"""
+        if state.get("error"):
+            return state
+        try:
+            tokenized_chunks = []
+            for chunk in state["chunks"]:
+                tokens = tokenize_korean(chunk["text"])
+                metadata = {**chunk["metadata"], "tokenized_text": " ".join(tokens)}
+                tokenized_chunks.append({**chunk, "metadata": metadata})
+            return {**state, "chunks": tokenized_chunks}
+        except Exception as e:
+            return {**state, "error": str(e)}
+
     def embed_node(state: IngestState) -> IngestState:
         """청크를 임베딩 벡터로 변환"""
         if state.get("error"):
@@ -74,13 +89,15 @@ def create_ingest_graph(parser, cleaner, chunker, embedder, vectorstore):
     graph.add_node("parse", parse_node)
     graph.add_node("clean", clean_node)
     graph.add_node("chunk", chunk_node)
+    graph.add_node("tokenize", tokenize_node)
     graph.add_node("embed", embed_node)
     graph.add_node("store", store_node)
 
     graph.set_entry_point("parse")
     graph.add_edge("parse", "clean")
     graph.add_edge("clean", "chunk")
-    graph.add_edge("chunk", "embed")
+    graph.add_edge("chunk", "tokenize")
+    graph.add_edge("tokenize", "embed")
     graph.add_edge("embed", "store")
     graph.add_edge("store", END)
     

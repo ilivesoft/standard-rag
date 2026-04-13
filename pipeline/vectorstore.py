@@ -93,6 +93,28 @@ class VectorStore:
         results = self._collection.get(include=["documents"])
         return results["documents"] or []
 
+    def get_all_texts_and_tokens(self) -> tuple[list[str], list[list[str]]]:
+        """모든 텍스트와 사전 토큰화된 데이터를 반환합니다.
+
+        Returns:
+            (원본 텍스트 리스트, 토큰 리스트의 리스트) 튜플.
+            토큰화 데이터가 없는 문서는 빈 리스트로 반환됩니다.
+        """
+        count = self.count()
+        if count == 0:
+            return [], []
+
+        results = self._collection.get(include=["documents", "metadatas"])
+        documents = results["documents"] or []
+        metadatas = results["metadatas"] or []
+
+        tokenized = []
+        for meta in metadatas:
+            token_str = (meta or {}).get("tokenized_text", "")
+            tokenized.append(token_str.split() if token_str else [])
+
+        return documents, tokenized
+
     # @MX:ANCHOR: [AUTO] 컬렉션 크기 확인 - query_graph, search, health check 등 다수 호출
     # @MX:REASON: fan_in >= 3 (query_graph empty check, search 내부, api/query health 등)
     def count(self) -> int:

@@ -10,7 +10,7 @@ def mock_embedder():
     """SentenceTransformer를 모킹한 DocumentEmbedder"""
     with patch("pipeline.embedder.SentenceTransformer") as mock_cls:
         mock_instance = MagicMock()
-        # 고정 384차원 벡터 반환
+
         def fake_encode(texts, **kwargs):
             if isinstance(texts, str):
                 return np.random.rand(384)
@@ -56,7 +56,6 @@ class TestDocumentEmbedderEmbed:
     def test_embed_empty_list_returns_empty(self, mock_embedder):
         """빈 리스트 입력 시 빈 리스트 반환"""
         embedder, mock_model = mock_embedder
-        mock_model.encode.return_value = np.array([])
         result = embedder.embed([])
         assert result == []
 

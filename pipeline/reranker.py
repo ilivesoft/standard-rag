@@ -1,9 +1,7 @@
-# Reranker 모듈 - cross-encoder 기반 문서 재순위화
-# Lazy import: 실제 사용 시 로드
-try:
-    from sentence_transformers.cross_encoder import CrossEncoder
-except ImportError:
-    CrossEncoder = None  # type: ignore
+# Reranker 모듈 - LangChain HuggingFaceCrossEncoder 기반 문서 재순위화
+from __future__ import annotations
+
+from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 
 
 class DocumentReranker:
@@ -16,12 +14,13 @@ class DocumentReranker:
             model_name: 사용할 CrossEncoder 모델 이름
         """
         self._model_name = model_name
-        self._model = None  # 지연 로딩
+        self._model: HuggingFaceCrossEncoder | None = None
 
-    def _load_model(self) -> None:
+    def _load_model(self) -> HuggingFaceCrossEncoder:
         """모델을 지연 로딩합니다."""
         if self._model is None:
-            self._model = CrossEncoder(self._model_name)
+            self._model = HuggingFaceCrossEncoder(model_name=self._model_name)
+        return self._model
 
     def rerank(self, query: str, chunks: list[dict], top_n: int = 3) -> list[dict]:
         """(query, document) 쌍을 재점수화하여 상위 N개를 반환합니다.
@@ -37,21 +36,15 @@ class DocumentReranker:
         if not chunks:
             return []
 
-        self._load_model()
-        assert self._model is not None
-
         pairs = [(query, chunk["text"]) for chunk in chunks]
-        scores = self._model.predict(pairs)
+        scores = self._load_model().score(pairs)
 
-        scored_chunks = []
-        for chunk, score in zip(chunks, scores):
-            chunk_copy = dict(chunk)
-            chunk_copy["rerank_score"] = float(score)
-            scored_chunks.append(chunk_copy)
-
-        # 점수 내림차순 정렬 후 상위 N개 반환
-        scored_chunks.sort(key=lambda x: x["rerank_score"], reverse=True)
-        return scored_chunks[:top_n]
+        scored = [
+            {**chunk, "rerank_score": float(score)}
+            for chunk, score in zip(chunks, scores)
+        ]
+        scored.sort(key=lambda x: x["rerank_score"], reverse=True)
+        return scored[:top_n]
 
     @property
     def is_loaded(self) -> bool:

@@ -134,7 +134,6 @@ class VectorStore:
         results = self._collection.get(include=["metadatas"])
         metadatas = results.get("metadatas") or []
 
-        # 소스별 청크 수 집계
         source_counts: dict[str, int] = {}
         for meta in metadatas:
             source = str((meta or {}).get("source", "unknown"))
@@ -191,10 +190,8 @@ class VectorStore:
         Returns:
             삭제된 청크 수
         """
-        # 삭제 전 총 청크 수 기록
         deleted_count = self.count()
 
-        # 컬렉션 삭제 후 재생성
         self._client.delete_collection(self._collection_name)
         self._collection = self._client.get_or_create_collection(
             name=self._collection_name,

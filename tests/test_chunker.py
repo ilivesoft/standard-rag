@@ -84,10 +84,9 @@ class TestTextChunkerSizeControl:
     """청크 크기 제어 테스트"""
 
     def test_chunk_respects_max_size(self, long_text):
-        """청크 크기가 원본 텍스트보다 짧음을 검증 (토큰 기반 SentenceSplitter)"""
+        """청크 크기가 원본 텍스트보다 짧음을 검증"""
         chunker = TextChunker(chunk_size=50, chunk_overlap=10)
         result = chunker.chunk(long_text, {"source": "test.txt"})
-        # SentenceSplitter는 토큰 기준으로 청킹하므로 각 청크가 원본보다 짧아야 함
         for chunk in result:
             assert len(chunk["text"]) < len(long_text)
 

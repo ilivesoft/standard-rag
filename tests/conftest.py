@@ -42,7 +42,7 @@ def sample_texts():
 @pytest.fixture
 def mock_sentence_transformer():
     """SentenceTransformer 모킹 픽스처"""
-    with patch("sentence_transformers.SentenceTransformer") as mock_cls:
+    with patch("pipeline.embedder.SentenceTransformer") as mock_cls:
         mock_instance = MagicMock()
         # encode 호출 시 고정 numpy 배열 반환
         mock_instance.encode.return_value = np.array([

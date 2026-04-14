@@ -1,6 +1,5 @@
-# 청킹 모듈 - SentenceSplitter 기반 텍스트 분할
-from llama_index.core.node_parser import SentenceSplitter
-from llama_index.core.schema import Document
+# 청킹 모듈 - RecursiveCharacterTextSplitter 기반 텍스트 분할
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
 class TextChunker:
@@ -10,15 +9,13 @@ class TextChunker:
         """초기화
 
         Args:
-            chunk_size: 각 청크의 최대 토큰 수
-            chunk_overlap: 연속된 청크 간 중복 토큰 수
+            chunk_size: 각 청크의 최대 문자 수
+            chunk_overlap: 연속된 청크 간 중복 문자 수
         """
-        self._chunk_size = chunk_size
-        self._chunk_overlap = chunk_overlap
-        self._splitter = SentenceSplitter(
+        self._splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
-            paragraph_separator="\n\n",
+            separators=["\n\n", "\n", " ", ""],
         )
 
     def chunk(self, text: str, metadata: dict) -> list[dict]:
@@ -35,12 +32,9 @@ class TextChunker:
         if not text or not text.strip():
             return []
 
-        nodes = self._splitter.get_nodes_from_documents([Document(text=text)])
-
-        result = []
-        for i, node in enumerate(nodes):
-            if node.text.strip():
-                chunk_metadata = {**metadata, "chunk_index": i}
-                result.append({"text": node.text, "metadata": chunk_metadata})
-
-        return result
+        docs = self._splitter.create_documents([text], metadatas=[metadata])
+        return [
+            {"text": doc.page_content, "metadata": {**doc.metadata, "chunk_index": i}}
+            for i, doc in enumerate(docs)
+            if doc.page_content.strip()
+        ]

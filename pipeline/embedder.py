@@ -1,15 +1,16 @@
-# 임베딩 생성 모듈 - BAAI/bge-m3, SentenceTransformer 기반
+# 임베딩 생성 모듈 - BAAI/bge-m3, SentenceTransformer 기반 (LangChain Embeddings 인터페이스 구현)
 from __future__ import annotations
 
-# Lazy import: 실제 사용 시 로드
-try:
-    from sentence_transformers import SentenceTransformer
-except ImportError:
-    SentenceTransformer = None  # type: ignore
+from langchain_core.embeddings import Embeddings
+from sentence_transformers import SentenceTransformer
 
 
-class DocumentEmbedder:
-    """문서와 질의를 위한 임베딩 벡터를 생성하는 클래스 (Lazy Loading 지원)"""
+class DocumentEmbedder(Embeddings):
+    """문서와 질의를 위한 임베딩 벡터를 생성하는 클래스 (Lazy Loading 지원).
+
+    LangChain Embeddings 인터페이스를 구현하여 langchain_chroma.Chroma의
+    embedding_function으로 직접 사용 가능합니다.
+    """
 
     def __init__(self, model_name: str = "BAAI/bge-m3", device: str = "cpu"):
         """초기화 (모델은 실제 사용 시 로드됨)
@@ -20,12 +21,13 @@ class DocumentEmbedder:
         """
         self._model_name = model_name
         self._device = device
-        self._model: "SentenceTransformer | None" = None  # 지연 로딩
+        self._model: SentenceTransformer | None = None
 
-    def _load_model(self) -> None:
+    def _load_model(self) -> SentenceTransformer:
         """모델을 지연 로딩합니다."""
         if self._model is None:
             self._model = SentenceTransformer(self._model_name, device=self._device)
+        return self._model
 
     # @MX:ANCHOR: [AUTO] 배치 임베딩 공개 API - ingest_graph, 테스트 등 다수 호출
     # @MX:REASON: fan_in >= 3 (ingest_graph embed 노드, test_embedder, test_ingest_graph 등)
@@ -41,28 +43,29 @@ class DocumentEmbedder:
         if not texts:
             return []
 
-        self._load_model()
-        assert self._model is not None
-        vectors = self._model.encode(texts, convert_to_numpy=True)
+        vectors = self._load_model().encode(texts, convert_to_numpy=True)
 
         if len(vectors.shape) == 1:
-            # 단일 벡터인 경우 2D로 변환
             return [vectors.tolist()]
         return [v.tolist() for v in vectors]
 
-    def embed_query(self, query: str) -> list[float]:
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        """LangChain Embeddings 인터페이스 구현 - 배치 임베딩.
+
+        langchain_chroma.Chroma의 embedding_function으로 사용됩니다.
+        """
+        return self.embed(texts)
+
+    def embed_query(self, text: str) -> list[float]:
         """단일 질의에 대한 임베딩을 생성합니다.
 
         Args:
-            query: 임베딩할 질의 문자열
+            text: 임베딩할 질의 문자열
 
         Returns:
             질의 임베딩 벡터
         """
-        self._load_model()
-        assert self._model is not None
-        vector = self._model.encode(query, convert_to_numpy=True)
-        return vector.tolist()
+        return self._load_model().encode(text, convert_to_numpy=True).tolist()
 
     @property
     def is_loaded(self) -> bool:

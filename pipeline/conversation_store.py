@@ -26,6 +26,10 @@ class ConversationStore:
         # 외래키 제약 활성화: CASCADE 삭제 지원
         self._conn.execute("PRAGMA foreign_keys=ON")
 
+        # 대화별 history 인메모리 캐시 (LLM 프롬프트용)
+        # {conversation_id: [{"role": str, "content": str}, ...]} 시간 오름차순
+        self._history_cache: dict[str, list[dict]] = {}
+
         self._create_tables()
 
     def _create_tables(self) -> None:
@@ -178,6 +182,22 @@ class ConversationStore:
 
         return self.get_conversation(conversation_id)
 
+    def _auto_title_if_needed(
+        self, conversation_id: str, current_title: str, user_message: str, now: str
+    ) -> None:
+        """대화 제목이 기본값이면 첫 메시지로 자동 업데이트합니다."""
+        if current_title == "새 대화":
+            auto_title = user_message[:50].strip()
+            self._conn.execute(
+                "UPDATE conversations SET title = ?, updated_at = ? WHERE id = ?",
+                (auto_title, now, conversation_id),
+            )
+        else:
+            self._conn.execute(
+                "UPDATE conversations SET updated_at = ? WHERE id = ?",
+                (now, conversation_id),
+            )
+
     def add_messages(
         self,
         conversation_id: str,
@@ -221,25 +241,102 @@ class ConversationStore:
             )
 
             # 제목이 기본값이면 첫 번째 사용자 메시지로 자동 업데이트
-            current_title = row["title"]
-            if current_title == "새 대화":
-                auto_title = user_message[:50].strip()
-                self._conn.execute(
-                    "UPDATE conversations SET title = ?, updated_at = ? WHERE id = ?",
-                    (auto_title, now, conversation_id),
-                )
-            else:
-                # updated_at 갱신
-                self._conn.execute(
-                    "UPDATE conversations SET updated_at = ? WHERE id = ?",
-                    (now, conversation_id),
-                )
+            self._auto_title_if_needed(conversation_id, row["title"], user_message, now)
 
             self._conn.commit()
             return True
         except sqlite3.Error:
             self._conn.rollback()
             return False
+
+    def get_cached_history(
+        self, conversation_id: str, max_turns: int
+    ) -> list[dict]:
+        """대화의 최근 N turn을 LLM 프롬프트용 딕셔너리 리스트로 반환합니다.
+
+        캐시 미스 시 DB에서 1회 재수화(rehydrate)하여 이후 호출은 캐시에서 조회합니다.
+        반환 리스트는 항상 새 복사본이므로 호출자가 수정해도 내부 캐시에 영향 없음.
+
+        Args:
+            conversation_id: 대상 대화 ID (빈 문자열이면 빈 리스트 반환)
+            max_turns: 반환할 최근 turn 수 (1 turn = user+assistant 2 메시지)
+
+        Returns:
+            [{"role": "user"|"assistant", "content": str}, ...] 시간 오름차순
+        """
+        if not conversation_id or max_turns <= 0:
+            return []
+
+        cached = self._history_cache.get(conversation_id)
+        if cached is None:
+            # 캐시 미스: DB에서 재수화
+            conv = self.get_conversation(conversation_id)
+            if conv is None:
+                return []
+            cached = [
+                {"role": msg["role"], "content": msg["content"]}
+                for msg in conv["messages"]
+            ]
+            self._history_cache[conversation_id] = cached
+
+        max_messages = max_turns * 2
+        if len(cached) > max_messages:
+            trimmed = cached[-max_messages:]
+        else:
+            trimmed = list(cached)
+        # 방어적 복사: 내부 dict까지 새로 만들어 caller 변조 차단
+        return [dict(msg) for msg in trimmed]
+
+    def append_turn(
+        self,
+        conversation_id: str,
+        user_message: str,
+        assistant_message: str,
+    ) -> bool:
+        """user/assistant 쌍을 DB와 캐시 양쪽에 추가합니다.
+
+        Args:
+            conversation_id: 대상 대화 ID
+            user_message: 사용자 메시지 내용
+            assistant_message: 어시스턴트 메시지 내용
+
+        Returns:
+            추가 성공 시 True, 대화가 없거나 ID가 비어있으면 False
+        """
+        if not conversation_id:
+            return False
+
+        # DB에 먼저 영속화 (실패 시 캐시도 건드리지 않음)
+        success = self.add_messages(
+            conversation_id, user_message, assistant_message
+        )
+        if not success:
+            return False
+
+        # 캐시 갱신
+        cached = self._history_cache.get(conversation_id)
+        if cached is None:
+            # 최초 호출이면 DB 재수화로 populate
+            conv = self.get_conversation(conversation_id)
+            self._history_cache[conversation_id] = [
+                {"role": msg["role"], "content": msg["content"]}
+                for msg in (conv["messages"] if conv else [])
+            ]
+        else:
+            cached.append({"role": "user", "content": user_message})
+            cached.append({"role": "assistant", "content": assistant_message})
+
+        return True
+
+    def invalidate_cache(self, conversation_id: str) -> None:
+        """특정 대화의 인메모리 history 캐시를 제거합니다.
+
+        존재하지 않는 ID를 전달해도 예외를 던지지 않습니다.
+
+        Args:
+            conversation_id: 무효화할 대화 ID
+        """
+        self._history_cache.pop(conversation_id, None)
 
     def close(self) -> None:
         """데이터베이스 연결을 닫습니다."""

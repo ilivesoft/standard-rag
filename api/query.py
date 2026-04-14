@@ -1,6 +1,9 @@
 # 질의 응답 API - /query, /query/stream, /collections, /health 엔드포인트
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
+
+from api.conversations import get_conversation_store
+from config.settings import settings
 from models.request import QueryRequest
 from models.response import QueryResponse, HealthResponse
 
@@ -37,26 +40,29 @@ def set_streaming_dependencies(retriever, generator):
     _generator = generator
 
 
-router = APIRouter(tags=["query"])
+def _init_conversation_context(conversation_id: str) -> tuple[str, list[dict]]:
+    """대화 ID를 확정하고 이전 turn history를 로드합니다.
 
-
-@router.post("/query", response_model=QueryResponse)
-async def query(request: QueryRequest):
-    """질의에 대한 응답을 생성합니다.
-
-    Args:
-        request: QueryRequest (query, top_k, top_n, alpha)
+    - conversation_id가 없으면 store에서 신규 대화를 생성
+    - store가 없으면 (테스트 환경 등) 빈 결과 반환
 
     Returns:
-        QueryResponse: 생성된 답변과 출처
+        (확정된 conversation_id, chat_history 리스트)
     """
-    graph = get_query_graph()
-    if graph is None:
-        raise HTTPException(status_code=500, detail="질의 그래프가 초기화되지 않았습니다.")
+    store = get_conversation_store()
+    if store is None:
+        return "", []
+    if not conversation_id:
+        conv = store.create_conversation(title="")
+        conversation_id = conv["id"]
+    history = store.get_cached_history(conversation_id, max_turns=settings.HISTORY_TURNS)
+    return conversation_id, history
 
-    initial_state: dict = {
+
+def _build_query_state(request: QueryRequest, chat_history: list[dict]) -> dict:
+    """LangGraph 초기 상태 딕셔너리를 생성합니다."""
+    return {
         "query": request.query,
-        "query_embedding": [],
         "retrieved_chunks": [],
         "reranked_chunks": [],
         "answer": "",
@@ -66,31 +72,43 @@ async def query(request: QueryRequest):
         "top_k": request.top_k,
         "top_n": request.top_n,
         "alpha": request.alpha,
+        "chat_history": chat_history,
     }
 
-    result = graph.invoke(initial_state)
+
+router = APIRouter(tags=["query"])
+
+
+@router.post("/query", response_model=QueryResponse)
+async def query(request: QueryRequest):
+    """질의에 대한 응답을 생성합니다."""
+    graph = get_query_graph()
+    if graph is None:
+        raise HTTPException(status_code=500, detail="질의 그래프가 초기화되지 않았습니다.")
+
+    conversation_id, chat_history = _init_conversation_context(request.conversation_id or "")
+    result = graph.invoke(_build_query_state(request, chat_history))
 
     if result.get("error"):
         raise HTTPException(status_code=500, detail=result["error"])
 
+    answer = result["answer"]
+    store = get_conversation_store()
+    if store is not None and conversation_id:
+        store.append_turn(conversation_id, request.query, answer)
+
     return QueryResponse(
-        answer=result["answer"],
+        answer=answer,
         sources=result["sources"],
         retrieved_count=len(result.get("retrieved_chunks", [])),
         reranked_count=len(result.get("reranked_chunks", [])),
+        conversation_id=conversation_id or None,
     )
 
 
 @router.post("/query/stream")
 async def query_stream(request: QueryRequest):
-    """SSE 스트리밍으로 질의 응답을 생성합니다.
-
-    Args:
-        request: QueryRequest (query, top_k, top_n, alpha)
-
-    Returns:
-        StreamingResponse: text/event-stream 형식의 SSE 응답
-    """
+    """SSE 스트리밍으로 질의 응답을 생성합니다."""
     if _retriever is None or _reranker is None or _generator is None:
         raise HTTPException(status_code=500, detail="스트리밍 의존성이 초기화되지 않았습니다.")
 
@@ -100,16 +118,19 @@ async def query_stream(request: QueryRequest):
             yield "data: [DONE]\n\n"
         return StreamingResponse(empty_stream(), media_type="text/event-stream")
 
-    chunks = _retriever.retrieve(
-        request.query,
-        top_k=request.top_k,
-        alpha=request.alpha,
-    )
+    chunks = _retriever.retrieve(request.query, top_k=request.top_k, alpha=request.alpha)
     reranked = _reranker.rerank(request.query, chunks, top_n=request.top_n)
 
+    conversation_id, chat_history = _init_conversation_context(request.conversation_id or "")
+    store = get_conversation_store()
+
     async def token_stream():
-        async for token in _generator.generate_stream(request.query, reranked):
+        buffer: list[str] = []
+        async for token in _generator.generate_stream(request.query, reranked, history=chat_history):
+            buffer.append(token)
             yield f"data: {token}\n\n"
+        if store is not None and conversation_id:
+            store.append_turn(conversation_id, request.query, "".join(buffer))
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(token_stream(), media_type="text/event-stream")
@@ -126,7 +147,6 @@ async def list_collections():
 @router.get("/health", response_model=HealthResponse)
 async def health_check():
     """시스템 헬스체크를 수행합니다."""
-    # ChromaDB 상태 확인
     chroma_status = "ok"
     if _vectorstore is not None:
         try:
@@ -134,21 +154,13 @@ async def health_check():
         except Exception:
             chroma_status = "error"
 
-    # 임베딩 모델 상태 확인
     embedding_status = "ok" if (_embedder is not None and _embedder.is_loaded) else "not_loaded"
-
-    # Reranker 상태 확인
     reranker_status = "ok" if (_reranker is not None and _reranker.is_loaded) else "not_loaded"
 
-    # LLM 상태 (연결 시도는 타임아웃이 있으므로 기본 상태로 설정)
-    llm_status = "unknown"
-
-    overall_status = "ok" if chroma_status == "ok" else "degraded"
-
     return HealthResponse(
-        status=overall_status,
+        status="ok" if chroma_status == "ok" else "degraded",
         chromadb_status=chroma_status,
         embedding_model_status=embedding_status,
-        llm_status=llm_status,
+        llm_status="unknown",
         reranker_status=reranker_status,
     )

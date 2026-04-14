@@ -16,6 +16,13 @@ def create_query_graph(retriever, reranker, generator, vectorstore):
         컴파일된 LangGraph 워크플로우
     """
 
+    def _node_error_guard(state: QueryState):
+        """이전 노드에서 오류가 발생한 경우 현재 상태를 그대로 반환합니다.
+        오류가 없으면 None을 반환하여 노드 실행을 계속합니다."""
+        if state.get("error"):
+            return state
+        return None
+
     def retrieve_node(state: QueryState) -> QueryState:
         """하이브리드 검색을 수행합니다."""
         # 빈 컬렉션 확인
@@ -34,8 +41,8 @@ def create_query_graph(retriever, reranker, generator, vectorstore):
 
     def rerank_node(state: QueryState) -> QueryState:
         """검색 결과를 재순위화합니다."""
-        if state.get("error"):
-            return state
+        if (guard := _node_error_guard(state)) is not None:
+            return guard
         try:
             reranked = reranker.rerank(
                 state["query"],
@@ -48,10 +55,14 @@ def create_query_graph(retriever, reranker, generator, vectorstore):
 
     def generate_node(state: QueryState) -> QueryState:
         """재순위된 청크를 기반으로 응답을 생성합니다."""
-        if state.get("error"):
-            return state
+        if (guard := _node_error_guard(state)) is not None:
+            return guard
         try:
-            result = generator.generate(state["query"], state["reranked_chunks"])
+            result = generator.generate(
+                state["query"],
+                state["reranked_chunks"],
+                history=state.get("chat_history", []),
+            )
             return {
                 **state,
                 "answer": result["answer"],

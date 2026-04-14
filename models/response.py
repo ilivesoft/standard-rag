@@ -1,6 +1,14 @@
 # Pydantic v2 응답 스키마 - API 출력 모델
-from typing import Optional
+from typing_extensions import TypedDict, NotRequired
+
 from pydantic import BaseModel
+
+
+class SourceMetadata(TypedDict, total=False):
+    """질의 결과 출처 메타데이터"""
+    source: str
+    chunk_index: NotRequired[int]
+    page: NotRequired[int]
 
 
 class IngestResponse(BaseModel):
@@ -8,7 +16,7 @@ class IngestResponse(BaseModel):
     filename: str
     chunks_indexed: int
     skipped: bool = False
-    skip_reason: Optional[str] = None
+    skip_reason: str | None = None
 
 
 class FolderIngestResponse(BaseModel):
@@ -22,9 +30,10 @@ class FolderIngestResponse(BaseModel):
 class QueryResponse(BaseModel):
     """질의 응답 모델"""
     answer: str
-    sources: list[dict]
+    sources: list[SourceMetadata]
     retrieved_count: int
     reranked_count: int
+    conversation_id: str | None = None
 
 
 class HealthResponse(BaseModel):

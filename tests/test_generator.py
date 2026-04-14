@@ -1,6 +1,7 @@
 # LLM 생성 모듈 테스트 - LangChain LLM 모킹, 프로바이더 전환 검증
 import pytest
 from unittest.mock import MagicMock, patch
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from pipeline.generator import ResponseGenerator
 
 
@@ -159,19 +160,76 @@ class TestResponseGeneratorStream:
             assert "" not in tokens
 
 
-class TestResponseGeneratorBuildPrompt:
-    """_build_prompt 메서드 테스트"""
+class TestResponseGeneratorBuildMessages:
+    """_build_messages 메서드 테스트 (대화 맥락 포함)"""
 
-    def test_build_prompt_contains_query(self, sample_chunks):
-        """프롬프트에 질의가 포함"""
+    def test_build_messages_without_history(self):
+        """history가 없으면 SystemMessage + 현재 HumanMessage만 포함"""
         with patch("pipeline.generator.ChatOllama"):
             generator = ResponseGenerator(provider="ollama")
-            prompt = generator._build_prompt("파이썬이란?", "컨텍스트 내용")
-            assert "파이썬이란?" in prompt
+            messages = generator._build_messages("파이썬이란?", "컨텍스트 내용", None)
 
-    def test_build_prompt_contains_context(self, sample_chunks):
-        """프롬프트에 컨텍스트가 포함"""
+            assert len(messages) == 2
+            assert isinstance(messages[0], SystemMessage)
+            assert "컨텍스트 내용" in messages[0].content
+            assert isinstance(messages[1], HumanMessage)
+            assert messages[1].content == "파이썬이란?"
+
+    def test_build_messages_with_history_order(self):
+        """history가 있으면 System → pairs → 현재 Human 순서로 구성"""
         with patch("pipeline.generator.ChatOllama"):
             generator = ResponseGenerator(provider="ollama")
-            prompt = generator._build_prompt("질문", "컨텍스트 내용입니다")
-            assert "컨텍스트 내용입니다" in prompt
+            history = [
+                {"role": "user", "content": "A"},
+                {"role": "assistant", "content": "B"},
+                {"role": "user", "content": "C"},
+                {"role": "assistant", "content": "D"},
+            ]
+            messages = generator._build_messages("지금 질문", "ctx", history)
+
+            assert len(messages) == 6
+            assert isinstance(messages[0], SystemMessage)
+            assert isinstance(messages[1], HumanMessage) and messages[1].content == "A"
+            assert isinstance(messages[2], AIMessage) and messages[2].content == "B"
+            assert isinstance(messages[3], HumanMessage) and messages[3].content == "C"
+            assert isinstance(messages[4], AIMessage) and messages[4].content == "D"
+            assert isinstance(messages[5], HumanMessage) and messages[5].content == "지금 질문"
+
+    def test_build_messages_skips_empty_and_unknown_roles(self):
+        """빈 content나 알 수 없는 role은 건너뜀"""
+        with patch("pipeline.generator.ChatOllama"):
+            generator = ResponseGenerator(provider="ollama")
+            history = [
+                {"role": "user", "content": ""},
+                {"role": "system", "content": "무시됨"},
+                {"role": "assistant", "content": "유효"},
+            ]
+            messages = generator._build_messages("q", "ctx", history)
+
+            # System + AIMessage("유효") + HumanMessage("q")
+            assert len(messages) == 3
+            assert isinstance(messages[1], AIMessage)
+            assert messages[1].content == "유효"
+
+    def test_generate_passes_history_to_llm(self, sample_chunks):
+        """generate가 history를 LLM invoke에 전달"""
+        with patch("pipeline.generator.ChatOllama") as mock_cls:
+            mock_llm = MagicMock()
+            mock_response = MagicMock()
+            mock_response.content = "응답"
+            mock_llm.invoke.return_value = mock_response
+            mock_cls.return_value = mock_llm
+
+            generator = ResponseGenerator(provider="ollama")
+            history = [
+                {"role": "user", "content": "이전 질문"},
+                {"role": "assistant", "content": "이전 답변"},
+            ]
+            generator.generate("현재 질문", sample_chunks, history=history)
+
+            # invoke에 전달된 메시지 리스트 확인
+            called_messages = mock_llm.invoke.call_args[0][0]
+            contents = [m.content for m in called_messages]
+            assert any("이전 질문" in c for c in contents)
+            assert any("이전 답변" in c for c in contents)
+            assert "현재 질문" in contents[-1]

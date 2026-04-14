@@ -1,8 +1,21 @@
 # Gradio 데모 UI 진입점 - RAG 관리, 챗봇 인터페이스
 import json
+import logging
 import os
 import httpx
 import gradio as gr
+
+from config.settings import settings
+
+logger = logging.getLogger(__name__)
+
+# HTTP 타임아웃 상수
+_HTTP_LONG_TIMEOUT = 300   # 파일 업로드 / LLM 질의용
+_HTTP_SHORT_TIMEOUT = 10   # 목록 조회 / 삭제 등 빠른 요청용
+
+# UI 슬라이더 제한
+_TOP_K_MAX = 50
+_TOP_N_MAX = 10
 
 # API 서버 기본 URL
 API_BASE_URL = "http://localhost:8000"
@@ -21,7 +34,7 @@ def upload_files(files) -> str:
                 response = httpx.post(
                     f"{API_BASE_URL}/ingest/file",
                     files={"file": (filename, f)},
-                    timeout=300,
+                    timeout=_HTTP_LONG_TIMEOUT,
                 )
             if response.status_code == 200:
                 data = response.json()
@@ -47,14 +60,14 @@ def upload_and_return(files):
 def refresh_rag_documents():
     """RAG 인덱스 문서 목록을 조회합니다."""
     try:
-        response = httpx.get(f"{API_BASE_URL}/index/documents", timeout=10)
+        response = httpx.get(f"{API_BASE_URL}/index/documents", timeout=_HTTP_SHORT_TIMEOUT)
         if response.status_code == 200:
             data = response.json()
             rows = [[False, doc["source"], doc["chunk_count"]] for doc in data.get("documents", [])]
             total = f"총 {data['total_documents']}개 문서 / {data['total_chunks']}개 청크"
             return rows, total
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("RAG 문서 목록 조회 실패: %s", e)
     return [], "서버에 연결할 수 없습니다"
 
 
@@ -69,9 +82,9 @@ def delete_selected_documents(table_data):
         if row and row[0]:
             source = str(row[1])
             try:
-                httpx.delete(f"{API_BASE_URL}/index/documents/{source}", timeout=10)
-            except Exception:
-                pass
+                httpx.delete(f"{API_BASE_URL}/index/documents/{source}", timeout=_HTTP_SHORT_TIMEOUT)
+            except Exception as e:
+                logger.warning("문서 삭제 실패 (%s): %s", source, e)
 
     return refresh_rag_documents()
 
@@ -87,74 +100,69 @@ def show_list_panel():
     return gr.update(visible=True), gr.update(visible=False), rows, status
 
 
+def _append_error_to_history(history: list, message: str, error_msg: str) -> None:
+    """사용자 메시지와 에러 응답을 히스토리에 추가합니다."""
+    history.append({"role": "user", "content": message})
+    history.append({"role": "assistant", "content": error_msg})
+
+
 def chat(message: str, history: list, top_k: int, top_n: int, alpha: float, conversation_id: str):
-    """질의를 API 서버에 전송하고 응답을 반환합니다. 첫 질문 전송 시 대화를 생성합니다."""
+    """질의를 API 서버에 전송하고 응답을 반환합니다.
+
+    대화 맥락은 백엔드가 conversation_id 기반으로 누적 관리합니다. 프론트엔드는
+    화면 표시용으로만 history를 유지하고, 질의 시 history를 전송하지 않습니다.
+    신규 대화는 백엔드가 생성하여 응답의 conversation_id로 반환합니다.
+    """
     if not message.strip():
         return "", history, "", conversation_id, False
 
-    is_new = not conversation_id
+    was_new = not conversation_id
 
     try:
         response = httpx.post(
             f"{API_BASE_URL}/query",
-            json={"query": message, "top_k": top_k, "top_n": top_n, "alpha": alpha},
-            timeout=300,
+            json={
+                "query": message,
+                "top_k": top_k,
+                "top_n": top_n,
+                "alpha": alpha,
+                "conversation_id": conversation_id,
+            },
+            timeout=_HTTP_LONG_TIMEOUT,
         )
         if response.status_code == 200:
             data = response.json()
             answer = data.get("answer", "응답 없음")
             sources = data.get("sources", [])
+            # 백엔드가 신규 대화를 생성했으면 응답에서 ID를 받아 사용
+            conversation_id = data.get("conversation_id", conversation_id)
 
+            # 화면 표시용으로만 history를 누적 (LLM 맥락은 백엔드가 관리)
             history.append({"role": "user", "content": message})
             history.append({"role": "assistant", "content": answer})
             sources_text = json.dumps(sources, ensure_ascii=False, indent=2)
 
-            if is_new:
-                title = message[:30].strip()
-                try:
-                    conv_resp = httpx.post(
-                        f"{API_BASE_URL}/conversations",
-                        json={"title": title},
-                        timeout=10,
-                    )
-                    if conv_resp.status_code == 200:
-                        conversation_id = conv_resp.json()["id"]
-                except Exception:
-                    pass
-
-            if conversation_id:
-                try:
-                    httpx.post(
-                        f"{API_BASE_URL}/conversations/{conversation_id}/messages",
-                        json={"user_message": message, "assistant_message": answer},
-                        timeout=30,
-                    )
-                except Exception:
-                    pass
-
-            new_conv_created = is_new and bool(conversation_id)
+            new_conv_created = was_new and bool(conversation_id)
             return "", history, sources_text, conversation_id, new_conv_created
         else:
             error_msg = f"오류: {response.text}"
-            history.append({"role": "user", "content": message})
-            history.append({"role": "assistant", "content": error_msg})
+            _append_error_to_history(history, message, error_msg)
             return "", history, "", conversation_id, False
     except Exception as e:
         error_msg = f"연결 오류: {str(e)}"
-        history.append({"role": "user", "content": message})
-        history.append({"role": "assistant", "content": error_msg})
+        _append_error_to_history(history, message, error_msg)
         return "", history, "", conversation_id, False
 
 
 def load_conversation_list() -> list:
     """대화 목록을 조회하여 반환합니다. [[title, "⋯", id], ...]"""
     try:
-        response = httpx.get(f"{API_BASE_URL}/conversations", timeout=10)
+        response = httpx.get(f"{API_BASE_URL}/conversations", timeout=_HTTP_SHORT_TIMEOUT)
         if response.status_code == 200:
             conversations = response.json().get("conversations", [])
             return [[c["title"] or "제목 없음", "⋯", c["id"]] for c in conversations]
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("대화 목록 조회 실패: %s", e)
     return []
 
 
@@ -183,7 +191,7 @@ def on_conv_select(selected_data, evt: gr.SelectData):
                 if col_idx == 1:  # ⋯ 클릭 → 액션 패널 표시
                     return gr.update(), conv_id, gr.update(visible=True), title
                 # 제목 클릭 → 대화 불러오기
-                response = httpx.get(f"{API_BASE_URL}/conversations/{conv_id}", timeout=10)
+                response = httpx.get(f"{API_BASE_URL}/conversations/{conv_id}", timeout=_HTTP_SHORT_TIMEOUT)
                 if response.status_code == 200:
                     data = response.json()
                     history = [
@@ -191,8 +199,8 @@ def on_conv_select(selected_data, evt: gr.SelectData):
                         for m in data.get("messages", [])
                     ]
                     return history, conv_id, gr.update(visible=False), title
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("대화 선택 처리 실패: %s", e)
     return gr.update(), "", gr.update(visible=False), ""
 
 
@@ -201,9 +209,9 @@ def delete_conversation(conversation_id: str):
     if not conversation_id:
         return [], "", load_conversation_list(), "", gr.update(visible=False)
     try:
-        httpx.delete(f"{API_BASE_URL}/conversations/{conversation_id}", timeout=10)
-    except Exception:
-        pass
+        httpx.delete(f"{API_BASE_URL}/conversations/{conversation_id}", timeout=_HTTP_SHORT_TIMEOUT)
+    except Exception as e:
+        logger.warning("대화 삭제 실패 (%s): %s", conversation_id, e)
     return [], "", load_conversation_list(), "", gr.update(visible=False)
 
 
@@ -214,10 +222,10 @@ def rename_conversation(conv_id: str, new_title: str):
             httpx.patch(
                 f"{API_BASE_URL}/conversations/{conv_id}",
                 json={"title": new_title.strip()},
-                timeout=10,
+                timeout=_HTTP_SHORT_TIMEOUT,
             )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("대화 제목 변경 실패 (%s): %s", conv_id, e)
     return load_conversation_list()
 
 
@@ -337,9 +345,9 @@ def create_demo() -> gr.Blocks:
 
                     with gr.Row():
                         with gr.Column(scale=3):
-                            top_k_slider = gr.Slider(minimum=1, maximum=50, value=10, step=1, label="검색 결과 수 (top_k)")
-                            top_n_slider = gr.Slider(minimum=1, maximum=10, value=3, step=1, label="재순위 결과 수 (top_n)")
-                            alpha_slider = gr.Slider(minimum=0.0, maximum=1.0, value=0.5, step=0.1, label="하이브리드 알파 (0=BM25, 1=Vector)")
+                            top_k_slider = gr.Slider(minimum=1, maximum=_TOP_K_MAX, value=settings.TOP_K_RETRIEVAL, step=1, label="검색 결과 수 (top_k)")
+                            top_n_slider = gr.Slider(minimum=1, maximum=_TOP_N_MAX, value=settings.TOP_N_RERANK, step=1, label="재순위 결과 수 (top_n)")
+                            alpha_slider = gr.Slider(minimum=0.0, maximum=1.0, value=settings.HYBRID_ALPHA, step=0.1, label="하이브리드 알파 (0=BM25, 1=Vector)")
                         with gr.Column(scale=7):
                             sources = gr.JSON(label="출처", height=220)
 

@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     # 대화 저장 경로
     CONVERSATIONS_DB: str = "./storage/conversations.db"
 
+    # 대화 맥락 설정 (LLM 프롬프트에 포함할 최근 turn 수, 1 turn = user+assistant 2 메시지)
+    HISTORY_TURNS: int = 5
+
     # 평가 결과 저장 경로
     EVAL_RESULTS_DIR: str = "./storage/eval_results"
 

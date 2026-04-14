@@ -20,8 +20,18 @@ def set_conversation_store(store) -> None:
     _conversation_store = store
 
 
+def is_conversation_store_initialized() -> bool:
+    """ConversationStore가 초기화되었는지 확인합니다."""
+    return _conversation_store is not None
+
+
+def get_conversation_store():
+    """주입된 ConversationStore를 반환합니다. 미초기화 시 None."""
+    return _conversation_store
+
+
 def _get_store():
-    """ConversationStore 인스턴스를 반환합니다."""
+    """ConversationStore 인스턴스를 반환합니다. 미초기화 시 RuntimeError."""
     if _conversation_store is None:
         raise RuntimeError("ConversationStore가 초기화되지 않았습니다.")
     return _conversation_store
@@ -61,11 +71,12 @@ async def get_conversation(conversation_id: str) -> ConversationDetailResponse:
 
 @router.delete("/conversations/{conversation_id}")
 async def delete_conversation(conversation_id: str) -> dict:
-    """대화와 관련된 모든 메시지를 삭제합니다."""
+    """대화와 관련된 모든 메시지를 삭제하고 인메모리 캐시도 무효화합니다."""
     store = _get_store()
     deleted = store.delete_conversation(conversation_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="대화를 찾을 수 없습니다.")
+    store.invalidate_cache(conversation_id)
     return {"success": True}
 
 

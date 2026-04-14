@@ -515,7 +515,7 @@ Vector 검색과 BM25 검색을 결합하고 Reciprocal Rank Fusion으로 결과
 CrossEncoder 모델을 사용하여 검색 결과를 관련성 순서로 재정렬합니다.
 
 ### Generator (응답 생성)
-LLM(Ollama 또는 OpenAI)을 사용하여 검색된 컨텍스트를 바탕으로 최종 응답을 생성합니다.
+LLM(Ollama 또는 OpenAI)을 사용하여 검색된 컨텍스트를 바탕으로 최종 응답을 생성합니다. LangChain LCEL(Expression Language) 기반으로 구현되어 `ChatPromptTemplate → LLM → StrOutputParser` 형태의 선언적 체인을 사용합니다.
 
 ### Evaluator (평가)
 RAGAS 메트릭스를 사용하여 생성된 답변의 품질을 평가합니다.

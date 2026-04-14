@@ -440,3 +440,27 @@ Windows 로컬 환경에서 실행 가능한 데모용 End-to-End RAG(Retrieval-
 2. **문서화**: API 엔드포인트별 사용 예시 추가
 3. **성능**: 대규모 대화 이력 조회 시 페이지네이션 고려
 4. **보안**: 사용자 인증/권한 기반 대화 격리 고려
+
+---
+
+## 리팩토링 이력 (Refactoring History)
+
+### LangChain LCEL 마이그레이션 (2026-04-15)
+
+**대상 파일**: `pipeline/chunker.py`, `pipeline/embedder.py`, `pipeline/generator.py`, `pipeline/reranker.py`, `pipeline/vectorstore.py`, `requirements.txt`
+
+**변경 내용**:
+- `llama-index-core` 의존성 **제거** → LangChain 네이티브 패키지로 완전 대체
+- **신규 패키지 추가**:
+  - `langchain-text-splitters>=0.3.0` — 텍스트 청킹 (chunker.py)
+  - `langchain-huggingface>=0.1.0` — HuggingFace 임베딩 통합 (embedder.py)
+  - `langchain-chroma>=0.1.0` — ChromaDB LangChain 통합 (vectorstore.py)
+  - `langchain-openai>=0.2.0` — OpenAI API 통합 (generator.py)
+- **LCEL 패턴 적용**: `generator.py`에서 `ChatPromptTemplate | LLM | StrOutputParser` 선언적 체인으로 리팩토링
+  - `_prepare_messages()` → `_build_history()` + `_build_chain()` 분리
+  - `MessagesPlaceholder` 활용한 대화 이력 관리 개선
+- **코드 간소화**: 10개 파일에서 168줄 제거, 123줄 추가 (순 45줄 감소)
+
+**Gradio UI 개선 (2026-04-14)**:
+- `app.py` 채팅 화면 컨트롤 개선 (채팅 컨트롤 레이아웃 재구성)
+- 대화 맥락 유지 구현 (이전 메시지 컨텍스트 전달)

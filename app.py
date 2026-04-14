@@ -114,7 +114,7 @@ def chat(message: str, history: list, top_k: int, top_n: int, alpha: float, conv
     신규 대화는 백엔드가 생성하여 응답의 conversation_id로 반환합니다.
     """
     if not message.strip():
-        return "", history, "", conversation_id, False
+        return "", history, None, conversation_id, False
 
     was_new = not conversation_id
 
@@ -140,19 +140,17 @@ def chat(message: str, history: list, top_k: int, top_n: int, alpha: float, conv
             # 화면 표시용으로만 history를 누적 (LLM 맥락은 백엔드가 관리)
             history.append({"role": "user", "content": message})
             history.append({"role": "assistant", "content": answer})
-            sources_text = json.dumps(sources, ensure_ascii=False, indent=2)
 
             new_conv_created = was_new and bool(conversation_id)
-            return "", history, sources_text, conversation_id, new_conv_created
+            return "", history, sources, conversation_id, new_conv_created
         else:
             error_msg = f"오류: {response.text}"
             _append_error_to_history(history, message, error_msg)
-            return "", history, "", conversation_id, False
+            return "", history, None, conversation_id, False
     except Exception as e:
         error_msg = f"연결 오류: {str(e)}"
         _append_error_to_history(history, message, error_msg)
-        return "", history, "", conversation_id, False
-
+        return "", history, None, conversation_id, False
 
 def load_conversation_list() -> list:
     """대화 목록을 조회하여 반환합니다. [[title, "⋯", id], ...]"""
@@ -173,12 +171,13 @@ def maybe_reload_conv_list(new_conv_created: bool):
     return gr.update()
 
 
-def new_conversation():
+def new_conversation(current_sources):
     """채팅 화면을 초기화합니다. 대화는 첫 질문 전송 시 생성됩니다."""
-    return [], "", "", load_conversation_list(), "", gr.update(visible=False)
+    clear = None if current_sources else gr.update()
+    return [], "", "", load_conversation_list(), "", gr.update(visible=False), clear
 
 
-def on_conv_select(selected_data, evt: gr.SelectData):
+def on_conv_select(selected_data, current_sources, evt: gr.SelectData):
     """대화 항목 선택 시 대화를 불러오거나 ⋯ 클릭 시 액션 패널을 표시합니다."""
     try:
         if selected_data is not None:
@@ -187,10 +186,12 @@ def on_conv_select(selected_data, evt: gr.SelectData):
                 row = rows[evt.index[0]]
                 conv_id = str(row[2])
                 title = str(row[0])
+                clear = None if current_sources else gr.update()
+
                 col_idx = evt.index[1] if isinstance(evt.index, (list, tuple)) and len(evt.index) > 1 else 0
-                if col_idx == 1:  # ⋯ 클릭 → 액션 패널 표시
-                    return gr.update(), conv_id, gr.update(visible=True), title
-                # 제목 클릭 → 대화 불러오기
+                if col_idx == 1:  # ⋯ 클릭 → 액션 패널 표시 (출처 유지)
+                    return gr.update(), conv_id, gr.update(visible=True), title, gr.update()
+                # 제목 클릭 → 대화 불러오기 (출처 조건부 초기화)
                 response = httpx.get(f"{API_BASE_URL}/conversations/{conv_id}", timeout=_HTTP_SHORT_TIMEOUT)
                 if response.status_code == 200:
                     data = response.json()
@@ -198,10 +199,10 @@ def on_conv_select(selected_data, evt: gr.SelectData):
                         {"role": m["role"], "content": m["content"]}
                         for m in data.get("messages", [])
                     ]
-                    return history, conv_id, gr.update(visible=False), title
+                    return history, conv_id, gr.update(visible=False), title, clear
     except Exception as e:
         logger.warning("대화 선택 처리 실패: %s", e)
-    return gr.update(), "", gr.update(visible=False), ""
+    return gr.update(), "", gr.update(visible=False), "", None if current_sources else gr.update()
 
 
 def delete_conversation(conversation_id: str):
@@ -233,6 +234,17 @@ def load_initial_data():
     """앱 시작 시 RAG 문서 목록과 대화 목록을 초기 로드합니다."""
     rag_rows, rag_status = refresh_rag_documents()
     return rag_rows, rag_status, load_conversation_list()
+
+
+def _lock_input(current_sources) -> tuple:
+    """전송 중 입력창을 비활성화하고 출처 컨트롤이 있을 경우 초기화합니다."""
+    clear = None if current_sources else gr.update()
+    return gr.update(interactive=False, placeholder="처리 중..."), clear
+
+
+def _unlock_input() -> gr.update:
+    """전송 완료 후 입력창을 활성화하고 원래 placeholder를 복원합니다."""
+    return gr.update(interactive=True, placeholder="질문을 입력하세요...")
 
 
 def create_demo() -> gr.Blocks:
@@ -354,8 +366,8 @@ def create_demo() -> gr.Blocks:
             # 이벤트 핸들러
             new_chat_btn.click(
                 fn=new_conversation,
-                inputs=[],
-                outputs=[chatbot, query_input, conversation_id_state, conversation_list, rename_input, action_panel],
+                inputs=[sources],
+                outputs=[chatbot, query_input, conversation_id_state, conversation_list, rename_input, action_panel, sources],
             )
             delete_chat_btn.click(
                 fn=delete_conversation,
@@ -364,8 +376,8 @@ def create_demo() -> gr.Blocks:
             )
             conversation_list.select(
                 fn=on_conv_select,
-                inputs=[conversation_list],
-                outputs=[chatbot, conversation_id_state, action_panel, rename_input],
+                inputs=[conversation_list, sources],
+                outputs=[chatbot, conversation_id_state, action_panel, rename_input, sources],
             )
             rename_btn.click(
                 fn=rename_conversation,
@@ -373,18 +385,26 @@ def create_demo() -> gr.Blocks:
                 outputs=[conversation_list],
             )
             submit_btn.click(
+                fn=_lock_input, inputs=[sources], outputs=[query_input, sources], queue=False,
+            ).then(
                 fn=chat,
                 inputs=[query_input, chatbot, top_k_slider, top_n_slider, alpha_slider, conversation_id_state],
                 outputs=[query_input, chatbot, sources, conversation_id_state, new_conv_created_state],
+            ).then(
+                fn=_unlock_input, inputs=[], outputs=[query_input], queue=False,
             ).then(
                 fn=maybe_reload_conv_list,
                 inputs=[new_conv_created_state],
                 outputs=[conversation_list],
             )
             query_input.submit(
+                fn=_lock_input, inputs=[sources], outputs=[query_input, sources], queue=False,
+            ).then(
                 fn=chat,
                 inputs=[query_input, chatbot, top_k_slider, top_n_slider, alpha_slider, conversation_id_state],
                 outputs=[query_input, chatbot, sources, conversation_id_state, new_conv_created_state],
+            ).then(
+                fn=_unlock_input, inputs=[], outputs=[query_input], queue=False,
             ).then(
                 fn=maybe_reload_conv_list,
                 inputs=[new_conv_created_state],

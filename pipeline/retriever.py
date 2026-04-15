@@ -1,17 +1,20 @@
 # 하이브리드 검색 모듈 - Vector + BM25 + RRF 융합 검색
+from __future__ import annotations
+
 from rank_bm25 import BM25Okapi
 
 from pipeline.tokenizer import tokenize_korean
+from pipeline.vectorstore_protocol import VectorStoreProtocol
 
 
 class HybridRetriever:
     """Vector 검색과 BM25 검색을 RRF로 융합하는 하이브리드 검색기"""
 
-    def __init__(self, vectorstore, embedder):
+    def __init__(self, vectorstore: VectorStoreProtocol, embedder):
         """초기화
 
         Args:
-            vectorstore: VectorStore 인스턴스
+            vectorstore: VectorStoreProtocol 구현체 (ChromaVectorStore 또는 PGVectorStore)
             embedder: DocumentEmbedder 인스턴스
         """
         self._vectorstore = vectorstore

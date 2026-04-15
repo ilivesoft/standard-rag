@@ -1,11 +1,14 @@
 # LangGraph 인덱싱 워크플로우 - parse→clean→chunk→tokenize→embed→store 순서 실행
+from __future__ import annotations
+
 from pathlib import Path
 from langgraph.graph import StateGraph, END
 from pipeline.graphs.state import IngestState
 from pipeline.tokenizer import tokenize_korean
+from pipeline.vectorstore_protocol import VectorStoreProtocol
 
 
-def create_ingest_graph(parser, cleaner, chunker, embedder, vectorstore):
+def create_ingest_graph(parser, cleaner, chunker, embedder, vectorstore: VectorStoreProtocol):
     """인덱싱 파이프라인 LangGraph를 생성하여 반환합니다.
 
     Args:
@@ -13,7 +16,7 @@ def create_ingest_graph(parser, cleaner, chunker, embedder, vectorstore):
         cleaner: TextCleaner 인스턴스
         chunker: TextChunker 인스턴스
         embedder: DocumentEmbedder 인스턴스
-        vectorstore: VectorStore 인스턴스
+        vectorstore: VectorStoreProtocol 구현체
 
     Returns:
         컴파일된 LangGraph 워크플로우

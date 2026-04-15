@@ -1,4 +1,8 @@
 # 질의 응답 API - /query, /query/stream, /collections, /health 엔드포인트
+from __future__ import annotations
+
+import json
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
@@ -6,10 +10,11 @@ from api.conversations import get_conversation_store
 from config.settings import settings
 from models.request import QueryRequest
 from models.response import QueryResponse, HealthResponse
+from pipeline.vectorstore_protocol import VectorStoreProtocol
 
 # 의존성은 main.py에서 주입
 _query_graph = None
-_vectorstore = None
+_vectorstore: VectorStoreProtocol | None = None
 _embedder = None
 _reranker = None
 _retriever = None
@@ -25,7 +30,7 @@ def set_query_graph(graph):
     _query_graph = graph
 
 
-def set_dependencies(vectorstore, embedder, reranker):
+def set_dependencies(vectorstore: VectorStoreProtocol, embedder, reranker):
     """헬스체크용 의존성 설정"""
     global _vectorstore, _embedder, _reranker
     _vectorstore = vectorstore
@@ -126,11 +131,19 @@ async def query_stream(request: QueryRequest):
 
     async def token_stream():
         buffer: list[str] = []
+        sources = [c.get("metadata", {}) for c in reranked]
         async for token in _generator.generate_stream(request.query, reranked, history=chat_history):
             buffer.append(token)
             yield f"data: {token}\n\n"
         if store is not None and conversation_id:
             store.append_turn(conversation_id, request.query, "".join(buffer))
+        meta = json.dumps({
+            "conversation_id": conversation_id,
+            "sources": sources,
+            "retrieved_count": len(chunks),
+            "reranked_count": len(reranked),
+        }, ensure_ascii=False)
+        yield f"data: [META]{meta}\n\n"
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(token_stream(), media_type="text/event-stream")

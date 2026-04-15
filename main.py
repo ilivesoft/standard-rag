@@ -11,7 +11,8 @@ from pipeline.parser import DocumentParser
 from pipeline.cleaner import TextCleaner
 from pipeline.chunker import TextChunker
 from pipeline.embedder import DocumentEmbedder
-from pipeline.vectorstore import VectorStore
+from pipeline.vectorstore_factory import create_vectorstore
+from pipeline.vectorstore_protocol import VectorStoreProtocol
 from pipeline.retriever import HybridRetriever
 from pipeline.reranker import DocumentReranker
 from pipeline.generator import ResponseGenerator
@@ -58,10 +59,16 @@ _embedder = DocumentEmbedder(
     model_name=settings.EMBEDDING_MODEL,
     device=settings.EMBEDDING_DEVICE,
 )
-_vectorstore = VectorStore(
-    persist_dir=settings.CHROMA_PERSIST_DIR,
-    collection=settings.CHROMA_COLLECTION,
-)
+
+# 환경 설정에 따라 적절한 벡터 백엔드 선택 및 초기화 (Fail-Fast 포함)
+_selected_backend = settings.resolve_vectorstore_backend()
+import logging as _logging
+_logging.basicConfig(level=_logging.INFO)
+_app_logger = _logging.getLogger(__name__)
+_app_logger.info("Vector backend: %s", _selected_backend)
+print(f"Vector backend: {_selected_backend}")
+
+_vectorstore: VectorStoreProtocol = create_vectorstore(settings)
 _retriever = HybridRetriever(vectorstore=_vectorstore, embedder=_embedder)
 _reranker = DocumentReranker(model_name=settings.RERANKER_MODEL)
 _generator = ResponseGenerator(

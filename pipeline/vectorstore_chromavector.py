@@ -3,8 +3,12 @@ import uuid
 import chromadb
 
 
-class VectorStore:
-    """ChromaDB를 사용하는 벡터 저장소 클래스"""
+class ChromaVectorStore:
+    """ChromaDB PersistentClient 기반 벡터 저장소 구현체.
+
+    VectorStoreProtocol을 구현하며 로컬 파일 기반 ChromaDB를 사용합니다.
+    개발 환경 기본 백엔드로 사용됩니다.
+    """
 
     def __init__(self, persist_dir: str = "./storage/chroma", collection: str = "default"):
         """초기화
@@ -199,3 +203,7 @@ class VectorStore:
         )
 
         return deleted_count
+
+# 삭제 예정
+# # 하위 호환성을 위한 alias - 기존 코드가 VectorStore를 직접 참조하는 경우 유지
+# VectorStore = ChromaVectorStore

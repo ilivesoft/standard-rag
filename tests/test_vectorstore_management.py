@@ -1,7 +1,7 @@
 # 벡터 저장소 관리 메서드 테스트 - 문서 조회, 삭제 CRUD 검증
 import pytest
 import numpy as np
-from pipeline.vectorstore import VectorStore
+from pipeline.vectorstore_chromavector import VectorStore
 
 
 @pytest.fixture

@@ -1,16 +1,19 @@
 # LangGraph 질의 워크플로우 - retrieve→rerank→generate, 빈 컬렉션 조건부 라우팅
+from __future__ import annotations
+
 from langgraph.graph import StateGraph, END
 from pipeline.graphs.state import QueryState
+from pipeline.vectorstore_protocol import VectorStoreProtocol
 
 
-def create_query_graph(retriever, reranker, generator, vectorstore):
+def create_query_graph(retriever, reranker, generator, vectorstore: VectorStoreProtocol):
     """질의 응답 파이프라인 LangGraph를 생성하여 반환합니다.
 
     Args:
         retriever: HybridRetriever 인스턴스
         reranker: DocumentReranker 인스턴스
         generator: ResponseGenerator 인스턴스
-        vectorstore: VectorStore 인스턴스 (컬렉션 크기 확인용)
+        vectorstore: VectorStoreProtocol 구현체 (컬렉션 크기 확인용)
 
     Returns:
         컴파일된 LangGraph 워크플로우

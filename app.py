@@ -109,48 +109,71 @@ def _append_error_to_history(history: list, message: str, error_msg: str) -> Non
 def chat(message: str, history: list, top_k: int, top_n: int, alpha: float, conversation_id: str):
     """질의를 API 서버에 전송하고 응답을 반환합니다.
 
-    대화 맥락은 백엔드가 conversation_id 기반으로 누적 관리합니다. 프론트엔드는
-    화면 표시용으로만 history를 유지하고, 질의 시 history를 전송하지 않습니다.
-    신규 대화는 백엔드가 생성하여 응답의 conversation_id로 반환합니다.
+    settings.CHAT_STREAM에 따라 응답 방식이 결정됩니다.
+    - True: SSE 스트리밍으로 토큰 단위 전송
+    - False: /query 엔드포인트로 일괄 응답 수신
+
+    대화 맥락은 백엔드가 conversation_id 기반으로 누적 관리합니다.
+    신규 대화는 백엔드가 생성하여 conversation_id로 반환합니다.
     """
     if not message.strip():
-        return "", history, None, conversation_id, False
+        yield "", history, None, conversation_id, False
+        return
 
     was_new = not conversation_id
+    history = list(history)
+    history.append({"role": "user", "content": message})
+    history.append({"role": "assistant", "content": ""})
 
-    try:
-        response = httpx.post(
-            f"{API_BASE_URL}/query",
-            json={
-                "query": message,
-                "top_k": top_k,
-                "top_n": top_n,
-                "alpha": alpha,
-                "conversation_id": conversation_id,
-            },
-            timeout=_HTTP_LONG_TIMEOUT,
-        )
-        if response.status_code == 200:
-            data = response.json()
-            answer = data.get("answer", "응답 없음")
-            sources = data.get("sources", [])
-            # 백엔드가 신규 대화를 생성했으면 응답에서 ID를 받아 사용
-            conversation_id = data.get("conversation_id", conversation_id)
+    sources = None
+    new_conv_created = False
+    payload = {
+        "query": message,
+        "top_k": top_k,
+        "top_n": top_n,
+        "alpha": alpha,
+        "conversation_id": conversation_id,
+    }
 
-            # 화면 표시용으로만 history를 누적 (LLM 맥락은 백엔드가 관리)
-            history.append({"role": "user", "content": message})
-            history.append({"role": "assistant", "content": answer})
+    if settings.CHAT_STREAM:
+        try:
+            with httpx.Client(timeout=_HTTP_LONG_TIMEOUT) as client:
+                with client.stream("POST", f"{API_BASE_URL}/query/stream", json=payload) as response:
+                    for line in response.iter_lines():
+                        if not line.startswith("data: "):
+                            continue
+                        data = line[6:]
+                        if data.startswith("[META]"):
+                            meta = json.loads(data[6:])
+                            conversation_id = meta.get("conversation_id", conversation_id)
+                            sources = meta.get("sources")
+                            new_conv_created = was_new and bool(conversation_id)
+                        elif data == "[DONE]":
+                            break
+                        else:
+                            history[-1]["content"] += data
+                            yield "", history, gr.update(), conversation_id, False
+        except Exception as e:
+            history[-1]["content"] = f"연결 오류: {str(e)}"
+    else:
+        try:
+            response = httpx.post(
+                f"{API_BASE_URL}/query",
+                json=payload,
+                timeout=_HTTP_LONG_TIMEOUT,
+            )
+            if response.status_code == 200:
+                data = response.json()
+                history[-1]["content"] = data["answer"]
+                conversation_id = data.get("conversation_id") or conversation_id
+                sources = data.get("sources")
+                new_conv_created = was_new and bool(conversation_id)
+            else:
+                history[-1]["content"] = f"오류: {response.text}"
+        except Exception as e:
+            history[-1]["content"] = f"연결 오류: {str(e)}"
 
-            new_conv_created = was_new and bool(conversation_id)
-            return "", history, sources, conversation_id, new_conv_created
-        else:
-            error_msg = f"오류: {response.text}"
-            _append_error_to_history(history, message, error_msg)
-            return "", history, None, conversation_id, False
-    except Exception as e:
-        error_msg = f"연결 오류: {str(e)}"
-        _append_error_to_history(history, message, error_msg)
-        return "", history, None, conversation_id, False
+    yield "", history, sources, conversation_id, new_conv_created
 
 def load_conversation_list() -> list:
     """대화 목록을 조회하여 반환합니다. [[title, "⋯", id], ...]"""

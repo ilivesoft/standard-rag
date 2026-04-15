@@ -1,7 +1,7 @@
 # 벡터 저장소 모듈 테스트 - tmp_path 픽스처, CRUD 검증
 import pytest
 import numpy as np
-from pipeline.vectorstore import VectorStore
+from pipeline.vectorstore_chromavector import VectorStore
 
 
 @pytest.fixture

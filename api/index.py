@@ -1,4 +1,6 @@
 # 인덱스 관리 API - /index/documents 엔드포인트
+from __future__ import annotations
+
 from fastapi import APIRouter, HTTPException
 from models.response import (
     ChunkDetail,
@@ -7,13 +9,14 @@ from models.response import (
     IndexDetailResponse,
     IndexListResponse,
 )
+from pipeline.vectorstore_protocol import VectorStoreProtocol
 
 # 의존성은 main.py에서 주입
-_vectorstore = None
+_vectorstore: VectorStoreProtocol | None = None
 
 
-def set_vectorstore(vs) -> None:
-    """VectorStore 인스턴스를 설정합니다."""
+def set_vectorstore(vs: VectorStoreProtocol) -> None:
+    """VectorStoreProtocol 구현체를 설정합니다."""
     global _vectorstore
     _vectorstore = vs
 

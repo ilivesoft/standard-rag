@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     PGVECTOR_PORT: int = 5432
     PGVECTOR_DATABASE: str = "rag_vectors"
     PGVECTOR_USER: str = "rag_user"
-    PGVECTOR_PASSWORD: str = ""  # 보안: 환경 변수로만 주입, 코드에 커밋 금지
+    PGVECTOR_PASSWORD: str = "rag_dev_password"  # 보안: 환경 변수로만 주입, 코드에 커밋 금지
     PGVECTOR_COLLECTION: str = "default"
     PGVECTOR_DIMENSION: int = 1024  # bge-m3 임베딩 차원
 
@@ -71,6 +71,10 @@ class Settings(BaseSettings):
 
     # 평가 결과 저장 경로
     EVAL_RESULTS_DIR: str = "./storage/eval_results"
+
+    # 검색 품질 평가 설정
+    QUALITY_THRESHOLD: float = 0.0  # CrossEncoder 점수 임계값 (ms-marco 기준: 0.0 경계)
+    MAX_RETRIES: int = 2            # 최대 재검색 횟수 (초과 시 현재 결과로 생성)
 
     def resolve_vectorstore_backend(self) -> str:
         """APP_ENV에 따라 벡터 백엔드를 결정하여 반환합니다.

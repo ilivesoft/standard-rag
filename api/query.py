@@ -78,6 +78,8 @@ def _build_query_state(request: QueryRequest, chat_history: list[dict]) -> dict:
         "top_n": request.top_n,
         "alpha": request.alpha,
         "chat_history": chat_history,
+        "quality_score": 0.0,
+        "retry_count": 0,
     }
 
 

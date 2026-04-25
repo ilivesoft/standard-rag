@@ -62,11 +62,11 @@ _embedder = DocumentEmbedder(
 
 # 환경 설정에 따라 적절한 벡터 백엔드 선택 및 초기화 (Fail-Fast 포함)
 _selected_backend = settings.resolve_vectorstore_backend()
-import logging as _logging
-_logging.basicConfig(level=_logging.INFO)
-_app_logger = _logging.getLogger(__name__)
-_app_logger.info("Vector backend: %s", _selected_backend)
 print(f"Vector backend: {_selected_backend}")
+# import logging as _logging
+# _logging.basicConfig(level=_logging.INFO)
+# _app_logger = _logging.getLogger(__name__)
+# _app_logger.info("Vector backend: %s", _selected_backend)
 
 _vectorstore: VectorStoreProtocol = create_vectorstore(settings)
 _retriever = HybridRetriever(vectorstore=_vectorstore, embedder=_embedder)
@@ -85,7 +85,7 @@ _ingest_graph = create_ingest_graph(
     _parser, _cleaner, _chunker, _embedder, _vectorstore
 )
 _query_graph = create_query_graph(
-    _retriever, _reranker, _generator, _vectorstore
+    _retriever, _reranker, _generator, _vectorstore, settings=settings
 )
 
 # 대화 저장소 초기화

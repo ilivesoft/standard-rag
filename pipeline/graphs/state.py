@@ -28,3 +28,6 @@ class QueryState(TypedDict):
     alpha: float
     # 대화 맥락 (이전 turn의 user/assistant 메시지, 시간 오름차순)
     chat_history: list[dict]
+    # 검색 품질 평가
+    quality_score: float   # reranked_chunks의 최고 rerank_score (grade_node 산출)
+    retry_count: int       # 재검색 시도 횟수 (무한루프 방지용)

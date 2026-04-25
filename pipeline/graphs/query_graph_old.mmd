@@ -1,0 +1,21 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	retrieve(retrieve)
+	rerank(rerank)
+	generate(generate)
+	no_docs(no_docs)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> retrieve;
+	rerank --> generate;
+	retrieve -.-> no_docs;
+	retrieve -.-> rerank;
+	generate --> __end__;
+	no_docs --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc

@@ -82,8 +82,8 @@ htmlcov/
 # APP Data Files
 # ===========================================
 storage/
-pipeline/graphs/ingest_graph.mmd
-pipeline/graphs/query_graph.mmd
+# pipeline/graphs/ingest_graph*.mmd
+# pipeline/graphs/query_graph*.mmd
 .moai/config/sections/user.yaml
 # ===========================================
 # OS Files

@@ -1,0 +1,789 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dineug/erd-editor/main/json-schema/schema.json",
+  "version": "3.0.0",
+  "settings": {
+    "width": 2000,
+    "height": 2000,
+    "scrollTop": -213,
+    "scrollLeft": -429.8243,
+    "zoomLevel": 0.91,
+    "show": 431,
+    "database": 4,
+    "databaseName": "rag_vectors / conversations",
+    "canvasType": "ERD",
+    "language": 1,
+    "tableNameCase": 4,
+    "columnNameCase": 2,
+    "bracketType": 1,
+    "relationshipDataTypeSync": true,
+    "relationshipOptimization": false,
+    "columnOrder": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64
+    ],
+    "maxWidthComment": -1,
+    "ignoreSaveSettings": 0
+  },
+  "doc": {
+    "tableIds": [
+      "tbl-pgcoll-0001",
+      "tbl-pgemb-0001",
+      "tbl-conv-00001",
+      "tbl-msgs-00001"
+    ],
+    "relationshipIds": [
+      "06bSq-EjXA0cwGDKEtdhx",
+      "5jdAog9JVJR6TQZaoEVqt"
+    ],
+    "indexIds": [
+      "idx-emb-cust-01"
+    ],
+    "memoIds": [
+      "memo-pg-0001",
+      "memo-sqlite-01"
+    ]
+  },
+  "collections": {
+    "tableEntities": {
+      "tbl-pgcoll-0001": {
+        "id": "tbl-pgcoll-0001",
+        "name": "langchain_pg_collection",
+        "comment": "PGVector 컬렉션 메타데이터 (langchain_postgres 자동관리)",
+        "columnIds": [
+          "col-pgcoll-uuid",
+          "col-pgcoll-name",
+          "col-pgcoll-meta"
+        ],
+        "seqColumnIds": [],
+        "ui": {
+          "x": 437.6799,
+          "y": 310.3615,
+          "zIndex": 1,
+          "widthName": 128,
+          "widthComment": 317,
+          "color": "#4a90d9"
+        },
+        "meta": {
+          "updateAt": 1777121553052,
+          "createAt": 1777016901222
+        }
+      },
+      "tbl-pgemb-0001": {
+        "id": "tbl-pgemb-0001",
+        "name": "langchain_pg_embedding",
+        "comment": "문서 청크 + 벡터 임베딩 저장 (BAAI/bge-m3, dim=1024, cosine)",
+        "columnIds": [
+          "col-pgemb-id00",
+          "NKKIj8GYJLo2iZkNNAU0W",
+          "col-pgemb-emb0",
+          "col-pgemb-doc0",
+          "col-pgemb-meta",
+          "col-pgemb-cust"
+        ],
+        "seqColumnIds": [
+          "NKKIj8GYJLo2iZkNNAU0W"
+        ],
+        "ui": {
+          "x": 424.9689,
+          "y": 600.0705,
+          "zIndex": 1,
+          "widthName": 138,
+          "widthComment": 341,
+          "color": "#4a90d9"
+        },
+        "meta": {
+          "updateAt": 1777121969445,
+          "createAt": 1777016901222
+        }
+      },
+      "tbl-conv-00001": {
+        "id": "tbl-conv-00001",
+        "name": "conversations",
+        "comment": "대화 세션 메타데이터 (SQLite: ./storage/conversations.db)",
+        "columnIds": [
+          "col-conv-id000",
+          "col-conv-title",
+          "col-conv-cat00",
+          "col-conv-uat00"
+        ],
+        "seqColumnIds": [],
+        "ui": {
+          "x": 1167.057,
+          "y": 306.6697,
+          "zIndex": 1,
+          "widthName": 75,
+          "widthComment": 308,
+          "color": "#7b68ee"
+        },
+        "meta": {
+          "updateAt": 1777121873395,
+          "createAt": 1777016901222
+        }
+      },
+      "tbl-msgs-00001": {
+        "id": "tbl-msgs-00001",
+        "name": "messages",
+        "comment": "대화 메시지 (role: user|assistant, CASCADE DELETE)",
+        "columnIds": [
+          "col-msgs-id000",
+          "bApxzzhbcu2HaSFU7Eh3G",
+          "col-msgs-role0",
+          "col-msgs-cont0",
+          "col-msgs-cat00"
+        ],
+        "seqColumnIds": [
+          "bApxzzhbcu2HaSFU7Eh3G"
+        ],
+        "ui": {
+          "x": 1170.2854,
+          "y": 589.7159,
+          "zIndex": 1,
+          "widthName": 60,
+          "widthComment": 272,
+          "color": "#7b68ee"
+        },
+        "meta": {
+          "updateAt": 1777122000593,
+          "createAt": 1777016901222
+        }
+      }
+    },
+    "tableColumnEntities": {
+      "col-pgcoll-uuid": {
+        "id": "col-pgcoll-uuid",
+        "tableId": "tbl-pgcoll-0001",
+        "name": "uuid",
+        "comment": "컬렉션 고유 식별자",
+        "dataType": "UUID",
+        "default": "",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 105,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777121663560,
+          "createAt": 1777016901222
+        }
+      },
+      "col-pgcoll-name": {
+        "id": "col-pgcoll-name",
+        "tableId": "tbl-pgcoll-0001",
+        "name": "name",
+        "comment": "컬렉션명 (PGVECTOR_COLLECTION env, default: \"default\")",
+        "dataType": "VARCHAR",
+        "default": "",
+        "options": 12,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 309,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "col-pgcoll-meta": {
+        "id": "col-pgcoll-meta",
+        "tableId": "tbl-pgcoll-0001",
+        "name": "cmetadata",
+        "comment": "컬렉션 수준 메타데이터 (nullable)",
+        "dataType": "JSON",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 181,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "col-pgemb-id00": {
+        "id": "col-pgemb-id00",
+        "tableId": "tbl-pgemb-0001",
+        "name": "id",
+        "comment": "임베딩 행 고유 식별자",
+        "dataType": "UUID",
+        "default": "",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 120,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777121770062,
+          "createAt": 1777016901222
+        }
+      },
+      "col-pgemb-cid0": {
+        "id": "col-pgemb-cid0",
+        "tableId": "tbl-pgemb-0001",
+        "name": "collection_id",
+        "comment": "FK → langchain_pg_collection.uuid",
+        "dataType": "UUID",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 68,
+          "widthComment": 184,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777121734290,
+          "createAt": 1777016901222
+        }
+      },
+      "col-pgemb-emb0": {
+        "id": "col-pgemb-emb0",
+        "tableId": "tbl-pgemb-0001",
+        "name": "embedding",
+        "comment": "pgvector 컬럼 — 1024차원 float32 (BAAI/bge-m3, cosine similarity)",
+        "dataType": "vector(1024)",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 63,
+          "widthComment": 358,
+          "widthDataType": 68,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "col-pgemb-doc0": {
+        "id": "col-pgemb-doc0",
+        "tableId": "tbl-pgemb-0001",
+        "name": "document",
+        "comment": "원본 텍스트 청크 내용 (CHUNK_SIZE=512자)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 238,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "col-pgemb-meta": {
+        "id": "col-pgemb-meta",
+        "tableId": "tbl-pgemb-0001",
+        "name": "cmetadata",
+        "comment": "청크별 메타데이터 JSON: {source, chunk_index, tokenized_text}",
+        "dataType": "JSON",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 335,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "col-pgemb-cust": {
+        "id": "col-pgemb-cust",
+        "tableId": "tbl-pgemb-0001",
+        "name": "custom_id",
+        "comment": "langchain_postgres 내부 사용 선택적 ID",
+        "dataType": "VARCHAR",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 213,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "col-conv-id000": {
+        "id": "col-conv-id000",
+        "tableId": "tbl-conv-00001",
+        "name": "id",
+        "comment": "대화 세션 UUID (문자열)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 131,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777121858906,
+          "createAt": 1777016901222
+        }
+      },
+      "col-conv-title": {
+        "id": "col-conv-title",
+        "tableId": "tbl-conv-00001",
+        "name": "title",
+        "comment": "대화 제목 (첫 번째 사용자 메시지에서 자동 생성)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 260,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "col-conv-cat00": {
+        "id": "col-conv-cat00",
+        "tableId": "tbl-conv-00001",
+        "name": "created_at",
+        "comment": "생성 시각 (ISO 8601 문자열)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 151,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "col-conv-uat00": {
+        "id": "col-conv-uat00",
+        "tableId": "tbl-conv-00001",
+        "name": "updated_at",
+        "comment": "최종 수정 시각 (메시지 추가 시 갱신)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 62,
+          "widthComment": 197,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "col-msgs-id000": {
+        "id": "col-msgs-id000",
+        "tableId": "tbl-msgs-00001",
+        "name": "id",
+        "comment": "자동 증가 메시지 ID",
+        "dataType": "INTEGER",
+        "default": "",
+        "options": 11,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 107,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777122007950,
+          "createAt": 1777016901222
+        }
+      },
+      "col-msgs-cid00": {
+        "id": "col-msgs-cid00",
+        "tableId": "tbl-msgs-00001",
+        "name": "1",
+        "comment": "FK → conversations.id ON DELETE CASCADE",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 235,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777121979691,
+          "createAt": 1777016901222
+        }
+      },
+      "col-msgs-role0": {
+        "id": "col-msgs-role0",
+        "tableId": "tbl-msgs-00001",
+        "name": "role",
+        "comment": "메시지 역할: \"user\" 또는 \"assistant\"",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 188,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "col-msgs-cont0": {
+        "id": "col-msgs-cont0",
+        "tableId": "tbl-msgs-00001",
+        "name": "content",
+        "comment": "메시지 텍스트 내용",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 105,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "col-msgs-cat00": {
+        "id": "col-msgs-cat00",
+        "tableId": "tbl-msgs-00001",
+        "name": "created_at",
+        "comment": "메시지 생성 시각 (ISO 8601)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 151,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "NKKIj8GYJLo2iZkNNAU0W": {
+        "id": "NKKIj8GYJLo2iZkNNAU0W",
+        "tableId": "tbl-pgemb-0001",
+        "name": "collection_id",
+        "comment": "FK → langchain_pg_collection.uuid",
+        "dataType": "UUID",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 68,
+          "widthComment": 184,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777121757674,
+          "createAt": 1777121694692
+        }
+      },
+      "bApxzzhbcu2HaSFU7Eh3G": {
+        "id": "bApxzzhbcu2HaSFU7Eh3G",
+        "tableId": "tbl-msgs-00001",
+        "name": "conversation_id",
+        "comment": "FK → conversations.id ON DELETE CASCADE",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 85,
+          "widthComment": 235,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1777121996048,
+          "createAt": 1777121909067
+        }
+      }
+    },
+    "relationshipEntities": {
+      "rel-emb-coll-01": {
+        "id": "rel-emb-coll-01",
+        "identification": true,
+        "relationshipType": 4,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "tbl-pgemb-0001",
+          "columnIds": [
+            "col-pgemb-cid0"
+          ],
+          "x": 776.5568000000001,
+          "y": 518.7518,
+          "direction": 4
+        },
+        "end": {
+          "tableId": "tbl-pgcoll-0001",
+          "columnIds": [
+            "col-pgcoll-uuid"
+          ],
+          "x": 744.6799,
+          "y": 438.3615,
+          "direction": 8
+        },
+        "meta": {
+          "updateAt": 1777121638736,
+          "createAt": 1777016901222
+        }
+      },
+      "rel-msgs-conv01": {
+        "id": "rel-msgs-conv01",
+        "identification": true,
+        "relationshipType": 4,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "tbl-msgs-00001",
+          "columnIds": [
+            "col-msgs-cid00"
+          ],
+          "x": 1482.4557,
+          "y": 473.4083,
+          "direction": 8
+        },
+        "end": {
+          "tableId": "tbl-conv-00001",
+          "columnIds": [
+            "col-conv-id000"
+          ],
+          "x": 1482.4251,
+          "y": 571.5049,
+          "direction": 4
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "06bSq-EjXA0cwGDKEtdhx": {
+        "id": "06bSq-EjXA0cwGDKEtdhx",
+        "identification": false,
+        "relationshipType": 4,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "tbl-pgcoll-0001",
+          "columnIds": [
+            "col-pgcoll-uuid"
+          ],
+          "x": 744.6799,
+          "y": 438.3615,
+          "direction": 8
+        },
+        "end": {
+          "tableId": "tbl-pgemb-0001",
+          "columnIds": [
+            "NKKIj8GYJLo2iZkNNAU0W"
+          ],
+          "x": 764.4689000000001,
+          "y": 600.0705,
+          "direction": 4
+        },
+        "meta": {
+          "updateAt": 1777121694693,
+          "createAt": 1777121694693
+        }
+      },
+      "5jdAog9JVJR6TQZaoEVqt": {
+        "id": "5jdAog9JVJR6TQZaoEVqt",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "tbl-conv-00001",
+          "columnIds": [
+            "col-conv-id000"
+          ],
+          "x": 1450.557,
+          "y": 458.6697,
+          "direction": 8
+        },
+        "end": {
+          "tableId": "tbl-msgs-00001",
+          "columnIds": [
+            "bApxzzhbcu2HaSFU7Eh3G"
+          ],
+          "x": 1452.7854,
+          "y": 589.7159,
+          "direction": 4
+        },
+        "meta": {
+          "updateAt": 1777121909067,
+          "createAt": 1777121909067
+        }
+      }
+    },
+    "indexEntities": {
+      "idx-emb-cid-001": {
+        "id": "idx-emb-cid-001",
+        "name": "ix_langchain_pg_embedding_collection_id",
+        "tableId": "tbl-pgemb-0001",
+        "indexColumnIds": [
+          "idxc-emb-cid-01"
+        ],
+        "seqIndexColumnIds": [
+          "idxc-emb-cid-01"
+        ],
+        "unique": false,
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "idx-emb-cust-01": {
+        "id": "idx-emb-cust-01",
+        "name": "ix_langchain_pg_embedding_custom_id",
+        "tableId": "tbl-pgemb-0001",
+        "indexColumnIds": [
+          "idxc-emb-cst-01"
+        ],
+        "seqIndexColumnIds": [
+          "idxc-emb-cst-01"
+        ],
+        "unique": false,
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "idx-msgs-cid-01": {
+        "id": "idx-msgs-cid-01",
+        "name": "idx_messages_conversation_id",
+        "tableId": "tbl-msgs-00001",
+        "indexColumnIds": [
+          "idxc-msgs-cid01"
+        ],
+        "seqIndexColumnIds": [
+          "idxc-msgs-cid01"
+        ],
+        "unique": false,
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      }
+    },
+    "indexColumnEntities": {
+      "idxc-emb-cid-01": {
+        "id": "idxc-emb-cid-01",
+        "indexId": "idx-emb-cid-001",
+        "columnId": "col-pgemb-cid0",
+        "orderType": 1,
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "idxc-emb-cst-01": {
+        "id": "idxc-emb-cst-01",
+        "indexId": "idx-emb-cust-01",
+        "columnId": "col-pgemb-cust",
+        "orderType": 1,
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "idxc-msgs-cid01": {
+        "id": "idxc-msgs-cid01",
+        "indexId": "idx-msgs-cid-01",
+        "columnId": "col-msgs-cid00",
+        "orderType": 1,
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      }
+    },
+    "memoEntities": {
+      "memo-pg-0001": {
+        "id": "memo-pg-0001",
+        "value": "[PostgreSQL: rag_vectors]\n- 확장: pgvector\n- 임베딩 모델: BAAI/bge-m3 (dim=1024)\n- 유사도: cosine (1 - cosine_distance)\n- 청크 크기: 512자 / 오버랩: 64자\n- 백엔드 선택: APP_ENV=production",
+        "ui": {
+          "x": 520,
+          "y": 80,
+          "zIndex": 0,
+          "width": 260,
+          "height": 150,
+          "color": "#dbeafe"
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      },
+      "memo-sqlite-01": {
+        "id": "memo-sqlite-01",
+        "value": "[SQLite: conversations.db]\n- 경로: ./storage/conversations.db\n- 설정: CONVERSATIONS_DB env\n- Pragma: journal_mode=WAL\n- Pragma: foreign_keys=ON\n- CASCADE DELETE: conversations → messages",
+        "ui": {
+          "x": 1200,
+          "y": 80,
+          "zIndex": 0,
+          "width": 260,
+          "height": 150,
+          "color": "#ede9fe"
+        },
+        "meta": {
+          "updateAt": 1777016901222,
+          "createAt": 1777016901222
+        }
+      }
+    }
+  }
+}

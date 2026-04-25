@@ -115,6 +115,29 @@ class ResponseGenerator:
             timeout=self._timeout,
         )
 
+    _REWRITE_PROMPT = ChatPromptTemplate.from_messages([
+        ("system", (
+            "주어진 검색 쿼리를 문서 검색에 최적화된 더 구체적인 형태로 재작성하세요. "
+            "재작성된 쿼리만 출력하고, 다른 설명은 포함하지 마세요."
+        )),
+        ("human", "{query}"),
+    ])
+
+    def rewrite_query(self, query: str) -> str:
+        """검색 품질이 낮을 때 쿼리를 재작성합니다.
+
+        Args:
+            query: 원본 검색 쿼리
+
+        Returns:
+            재작성된 쿼리 문자열 (실패 시 원본 쿼리 반환)
+        """
+        try:
+            chain = self._REWRITE_PROMPT | self._get_llm() | StrOutputParser()
+            return chain.invoke({"query": query}).strip()
+        except Exception:
+            return query
+
     @property
     def is_connected(self) -> bool:
         """LLM 서비스 연결 상태를 확인합니다."""

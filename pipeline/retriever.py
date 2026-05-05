@@ -1,8 +1,11 @@
 # 하이브리드 검색 모듈 - Vector + BM25 + RRF 융합 검색
 from __future__ import annotations
 
+import math
+
 from rank_bm25 import BM25Okapi
 
+from config.settings import settings as _settings
 from pipeline.tokenizer import tokenize_korean
 from pipeline.vectorstore_protocol import VectorStoreProtocol
 
@@ -41,6 +44,9 @@ class HybridRetriever:
 
         vector_results = self._vector_search(query_embedding, top_k)
         bm25_results = self._bm25_search(query, top_k)
+
+        if not self._passes_quality_gate(vector_results, bm25_results, alpha):
+            return []
 
         fused = self._rrf_fusion(vector_results, bm25_results, alpha=alpha)
         return fused[:top_k]
@@ -99,6 +105,41 @@ class HybridRetriever:
                 "score": float(scores[idx]),
             })
         return results
+    
+    def _normalize_bm25(self, bm25_raw: float) -> float:
+        """BM25 raw 점수를 sigmoid로 0~1 정규화합니다."""
+        return 1 / (1 + math.exp(-0.3 * (bm25_raw - _settings.BM25_SIGMOID_CENTER)))
+
+    def _passes_quality_gate(
+        self,
+        vector_results: list[dict],
+        bm25_results: list[dict],
+        alpha: float,
+    ) -> bool:
+        """Vector/BM25 점수를 정규화 결합하여 Reranking 진입 여부를 결정합니다.
+
+        BM25 raw 점수(0~∞)를 sigmoid로 0~1 정규화 후 alpha 가중 결합.
+        둘 다 하한 미만이면 sigmoid 계산 없이 즉시 False 반환.
+
+        Args:
+            vector_results: 벡터 검색 결과 (score = cosine similarity 0~1)
+            bm25_results: BM25 검색 결과 (score = raw Okapi 점수 0~∞)
+            alpha: Vector 검색 가중치 (0=BM25만, 1=Vector만)
+
+        Returns:
+            True이면 Reranking 진행, False이면 관련 문서 없음
+        """
+        max_vector = max((c["score"] for c in vector_results), default=0.0)
+        max_bm25   = max((c["score"] for c in bm25_results),   default=0.0)
+
+        # 1차: 둘 다 하한 미만이면 즉시 컷
+        if max_vector < _settings.VECTOR_THRESHOLD and max_bm25 < _settings.BM25_THRESHOLD:
+            return False
+
+        # 2차: BM25를 sigmoid로 0~1 정규화 후 alpha 가중 결합
+        bm25_norm = self._normalize_bm25(max_bm25)
+        quality = alpha * max_vector + (1 - alpha) * bm25_norm
+        return quality >= _settings.DEFAULT_QUALITY_THRESHOLD
 
     # @MX:NOTE: [AUTO] RRF k=60은 Cormack et al.(2009) 논문 권장값 - 임의 변경 금지
     def _rrf_fusion(
@@ -117,7 +158,7 @@ class HybridRetriever:
             alpha: Vector 검색 가중치 (0=BM25만, 1=Vector만, 0.5=동일 가중치)
 
         Returns:
-            RRF 점수로 정렬된 병합 결과
+            RRF 점수로 정렬된 병합 결과. 각 청크에 quality_signal(0-1) 포함.
         """
         if not vector_results and not bm25_results:
             return []

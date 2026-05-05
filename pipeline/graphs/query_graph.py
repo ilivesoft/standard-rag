@@ -86,12 +86,12 @@ def create_query_graph(retriever, reranker, generator, vectorstore: VectorStoreP
             return {**state, "error": str(e)}
 
     def no_docs_node(state: QueryState) -> QueryState:
-        """인덱싱된 문서가 없을 때 안내 메시지를 반환합니다."""
-        return {
-            **state,
-            "answer": "인덱싱된 문서가 없습니다. 먼저 문서를 업로드하여 인덱싱해 주세요.",
-            "sources": [],
-        }
+        """관련 문서가 없을 때 안내 메시지를 반환합니다."""
+        if state.get("is_empty_collection"):
+            msg = "인덱싱된 문서가 없습니다. 먼저 문서를 업로드하여 인덱싱해 주세요."
+        else:
+            msg = "관련 문서를 찾을 수 없습니다. 다른 키워드로 검색해 보세요."
+        return {**state, "answer": msg, "sources": []}
 
     def query_rewrite_node(state: QueryState) -> QueryState:
         """검색 품질이 낮을 때 LLM으로 쿼리를 재작성하고 재검색을 준비합니다."""
@@ -111,8 +111,8 @@ def create_query_graph(retriever, reranker, generator, vectorstore: VectorStoreP
             return {**state, "error": str(e)}
 
     def route_after_retrieve(state: QueryState) -> str:
-        """retrieve 후 라우팅 결정: 빈 컬렉션이면 no_docs, 아니면 rerank"""
-        if state.get("is_empty_collection"):
+        """retrieve 후 라우팅 결정: 빈 컬렉션이거나 품질 게이트 실패(빈 결과)이면 no_docs, 아니면 rerank"""
+        if state.get("is_empty_collection") or not state.get("retrieved_chunks"):
             return "no_docs"
         return "rerank"
 

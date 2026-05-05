@@ -141,7 +141,6 @@ class TestHybridRetrieverRRF:
         result = retriever._rrf_fusion(vector_results, bm25_results)
         assert result[0]["metadata"] == {"source": "doc1.txt"}
 
-
 class TestHybridRetrieverBM25:
     """BM25 검색 테스트"""
 
@@ -226,3 +225,53 @@ class TestHybridRetrieverBM25:
         assert len(result) > 0
         scores = [r["score"] for r in result]
         assert max(scores) > 0.0
+
+
+class TestNormalizeBm25:
+    """_normalize_bm25 헬퍼 단위 테스트"""
+
+    def test_center_value_returns_half(self, retriever):
+        """BM25_SIGMOID_CENTER(10.0)에서 0.5 반환"""
+        result = retriever._normalize_bm25(10.0)
+        assert result == pytest.approx(0.5, abs=1e-6)
+
+    def test_zero_returns_low_value(self, retriever):
+        """raw 점수 0.0은 0.1 미만의 낮은 값 반환"""
+        result = retriever._normalize_bm25(0.0)
+        assert result < 0.1
+
+    def test_high_value_returns_near_one(self, retriever):
+        """매우 높은 raw 점수는 1에 가까운 값 반환"""
+        result = retriever._normalize_bm25(50.0)
+        assert result > 0.99
+
+    def test_output_range_is_zero_to_one(self, retriever):
+        """출력값은 항상 0~1 범위"""
+        for raw in [0.0, 5.0, 10.0, 20.0, 100.0]:
+            result = retriever._normalize_bm25(raw)
+            assert 0.0 <= result <= 1.0
+
+
+class TestComputeQualitySignal:
+    """_compute_quality_signal 헬퍼 단위 테스트"""
+
+    def test_vector_only_returns_cosine(self, retriever):
+        """bm25_raw=0이면 cosine 그대로 반환"""
+        assert retriever._compute_quality_signal(0.8, 0.0) == pytest.approx(0.8)
+
+    def test_bm25_dominates_when_higher(self, retriever):
+        """sigmoid(bm25)가 cosine보다 높으면 sigmoid 값 반환"""
+        result = retriever._compute_quality_signal(0.3, 20.0)
+        assert result > 0.3
+
+    def test_cosine_dominates_when_higher(self, retriever):
+        """cosine이 sigmoid(bm25)보다 높으면 cosine 반환"""
+        result = retriever._compute_quality_signal(0.9, 3.0)
+        assert result == pytest.approx(0.9)
+
+    def test_output_range_is_zero_to_one(self, retriever):
+        """출력값은 항상 0~1 범위"""
+        test_cases = [(0.5, 10.0), (0.9, 0.0), (0.0, 5.0), (0.7, 15.0)]
+        for cosine, bm25_raw in test_cases:
+            result = retriever._compute_quality_signal(cosine, bm25_raw)
+            assert 0.0 <= result <= 1.0

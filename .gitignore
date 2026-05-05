@@ -85,6 +85,7 @@ storage/
 # pipeline/graphs/ingest_graph*.mmd
 # pipeline/graphs/query_graph*.mmd
 .moai/config/sections/user.yaml
+docker/elasticsearch-stack/data
 # ===========================================
 # OS Files
 # ===========================================

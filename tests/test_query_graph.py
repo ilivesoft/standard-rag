@@ -121,7 +121,6 @@ class TestQueryGraphNormalFlow:
         graph.invoke(base_state)
         mock_generator.generate.assert_called_once()
 
-
 class TestQueryGraphEmptyCollection:
     """빈 컬렉션 라우팅 테스트"""
 

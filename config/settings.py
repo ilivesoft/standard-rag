@@ -73,8 +73,13 @@ class Settings(BaseSettings):
     EVAL_RESULTS_DIR: str = "./storage/eval_results"
 
     # 검색 품질 평가 설정
-    QUALITY_THRESHOLD: float = 0.0  # CrossEncoder 점수 임계값 (ms-marco 기준: 0.0 경계)
-    MAX_RETRIES: int = 2            # 최대 재검색 횟수 (초과 시 현재 결과로 생성)
+    QUALITY_THRESHOLD: float = 0.0           # CrossEncoder 점수 임계값 (ms-marco 기준: 0.0 경계)
+    MAX_RETRIES: int = 2                     # 최대 재검색 횟수 (초과 시 현재 결과로 생성)
+
+    DEFAULT_QUALITY_THRESHOLD: float = 0.3   # retrieve -> pre-rerank 게이트: 정규화 결합 점수 임계값
+    VECTOR_THRESHOLD: float = 0.2            # 하드컷 하한: cosine 유사도 (미만이면 둘 다 약함 판정)
+    BM25_THRESHOLD: float = 3.0              # 하드컷 하한: raw BM25 (미만이면 둘 다 약함 판정)
+    BM25_SIGMOID_CENTER: float = 10.0        # BM25 sigmoid 정규화 중심값 (이 값에서 0.5로 수렴)
 
     def resolve_vectorstore_backend(self) -> str:
         """APP_ENV에 따라 벡터 백엔드를 결정하여 반환합니다.

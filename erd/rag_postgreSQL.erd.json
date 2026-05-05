@@ -5,7 +5,7 @@
     "width": 2000,
     "height": 2000,
     "scrollTop": -213,
-    "scrollLeft": -429.8243,
+    "scrollLeft": -800,
     "zoomLevel": 0.91,
     "show": 431,
     "database": 4,
@@ -643,7 +643,7 @@
       "5jdAog9JVJR6TQZaoEVqt": {
         "id": "5jdAog9JVJR6TQZaoEVqt",
         "identification": false,
-        "relationshipType": 16,
+        "relationshipType": 4,
         "startRelationshipType": 2,
         "start": {
           "tableId": "tbl-conv-00001",
@@ -664,7 +664,7 @@
           "direction": 4
         },
         "meta": {
-          "updateAt": 1777121909067,
+          "updateAt": 1777252031770,
           "createAt": 1777121909067
         }
       }

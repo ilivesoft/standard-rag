@@ -1,0 +1,191 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "ui_kits/web/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Pretendard Variable|Roboto Mono))/i]",
+        "message": "Font not provided by the design system. Available: Pretendard Variable, Roboto Mono."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {},
+    "tokens": [
+      "--il-active",
+      "--il-bg-base",
+      "--il-blue",
+      "--il-blue-hover",
+      "--il-blue-soft",
+      "--il-duration-bg",
+      "--il-focus-ring",
+      "--il-font",
+      "--il-font-mono",
+      "--il-fs-body-lg",
+      "--il-fs-body-md",
+      "--il-fs-body-sm",
+      "--il-fs-caption",
+      "--il-fs-display",
+      "--il-fs-heading",
+      "--il-fs-label",
+      "--il-fw-body-lg",
+      "--il-fw-body-md",
+      "--il-fw-body-sm",
+      "--il-fw-caption",
+      "--il-fw-display",
+      "--il-fw-heading",
+      "--il-fw-label",
+      "--il-grad-brand",
+      "--il-grad-scrim",
+      "--il-hover",
+      "--il-icon",
+      "--il-lh-body-lg",
+      "--il-lh-body-md",
+      "--il-lh-body-sm",
+      "--il-lh-caption",
+      "--il-lh-display",
+      "--il-lh-heading",
+      "--il-lh-label",
+      "--il-live",
+      "--il-navy",
+      "--il-navy-hover",
+      "--il-overlay",
+      "--il-radius-circle",
+      "--il-radius-md",
+      "--il-radius-none",
+      "--il-radius-pill",
+      "--il-radius-sm",
+      "--il-radius-thumb",
+      "--il-radius-xs",
+      "--il-shadow-menu",
+      "--il-shadow-modal",
+      "--il-shadow-toast",
+      "--il-space-1",
+      "--il-space-2",
+      "--il-space-3",
+      "--il-space-4",
+      "--il-space-5",
+      "--il-space-6",
+      "--il-space-7",
+      "--il-space-8",
+      "--il-space-9",
+      "--il-success",
+      "--il-surface",
+      "--il-surface-el",
+      "--il-text-hint",
+      "--il-text-primary",
+      "--il-text-sec",
+      "--il-warning"
+    ],
+    "tokenKinds": {
+      "--il-blue": "color",
+      "--il-blue-hover": "color",
+      "--il-blue-soft": "color",
+      "--il-navy": "color",
+      "--il-navy-hover": "color",
+      "--il-bg-base": "color",
+      "--il-surface": "color",
+      "--il-surface-el": "color",
+      "--il-overlay": "color",
+      "--il-text-primary": "font",
+      "--il-text-sec": "font",
+      "--il-text-hint": "font",
+      "--il-icon": "color",
+      "--il-live": "color",
+      "--il-success": "color",
+      "--il-warning": "color",
+      "--il-duration-bg": "color",
+      "--il-hover": "color",
+      "--il-active": "color",
+      "--il-focus-ring": "color",
+      "--il-grad-brand": "other",
+      "--il-grad-scrim": "other",
+      "--il-font": "font",
+      "--il-font-mono": "font",
+      "--il-fs-display": "spacing",
+      "--il-fw-display": "other",
+      "--il-lh-display": "other",
+      "--il-fs-heading": "spacing",
+      "--il-fw-heading": "other",
+      "--il-lh-heading": "other",
+      "--il-fs-body-lg": "spacing",
+      "--il-fw-body-lg": "other",
+      "--il-lh-body-lg": "other",
+      "--il-fs-body-md": "spacing",
+      "--il-fw-body-md": "other",
+      "--il-lh-body-md": "other",
+      "--il-fs-body-sm": "spacing",
+      "--il-fw-body-sm": "other",
+      "--il-lh-body-sm": "other",
+      "--il-fs-caption": "spacing",
+      "--il-fw-caption": "other",
+      "--il-lh-caption": "other",
+      "--il-fs-label": "spacing",
+      "--il-fw-label": "other",
+      "--il-lh-label": "other",
+      "--il-space-1": "spacing",
+      "--il-space-2": "spacing",
+      "--il-space-3": "spacing",
+      "--il-space-4": "spacing",
+      "--il-space-5": "spacing",
+      "--il-space-6": "spacing",
+      "--il-space-7": "spacing",
+      "--il-space-8": "spacing",
+      "--il-space-9": "spacing",
+      "--il-radius-none": "radius",
+      "--il-radius-xs": "radius",
+      "--il-radius-sm": "radius",
+      "--il-radius-md": "radius",
+      "--il-radius-thumb": "radius",
+      "--il-radius-pill": "radius",
+      "--il-radius-circle": "radius",
+      "--il-shadow-menu": "shadow",
+      "--il-shadow-toast": "shadow",
+      "--il-shadow-modal": "shadow"
+    },
+    "fontFamilies": [
+      "Pretendard Variable",
+      "Roboto Mono"
+    ]
+  }
+}

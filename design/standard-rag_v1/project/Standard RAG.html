@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Standard RAG — Console</title>
+
+<!-- iLive Design System tokens -->
+<link rel="stylesheet" href="_ds/ilive-design-system-a582186a-eebc-4437-ace5-09649a4fd90e/colors_and_type.css" />
+<link rel="stylesheet" href="_ds/ilive-design-system-a582186a-eebc-4437-ace5-09649a4fd90e/components.css" />
+
+<!-- Material Symbols (iLive iconography) -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+<!-- React + Babel (pinned) -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- iLive component bundle (required by design system) -->
+<script src="_ds/ilive-design-system-a582186a-eebc-4437-ace5-09649a4fd90e/_ds_bundle.js"></script>
+
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body { background: var(--il-bg-base); }
+  #root { height: 100%; }
+
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    user-select: none;
+  }
+
+  /* Scrollbars */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--il-overlay); border-radius: 6px; border: 2px solid var(--il-surface); }
+  ::-webkit-scrollbar-thumb:hover { background: #4a4e57; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* Range slider thumb */
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; border: 3px solid var(--il-blue);
+    cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.4);
+    margin-top: -1px;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #fff; border: 3px solid var(--il-blue); cursor: pointer;
+  }
+  input[type=range] { background: transparent; }
+
+  select option { background: var(--il-surface-el); color: var(--il-text-primary); }
+
+  @keyframes srPulse { 0% { transform: scale(1); opacity: .6; } 100% { transform: scale(2.6); opacity: 0; } }
+  @keyframes srSpin { to { transform: rotate(360deg); } }
+  @keyframes srBlink { 50% { opacity: 0; } }
+</style>
+</head>
+<body class="il">
+  <div id="root"></div>
+
+  <!-- Tweaks shell -->
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <!-- App modules -->
+  <script type="text/babel" src="data.jsx"></script>
+  <script type="text/babel" src="ui.jsx"></script>
+  <script type="text/babel" src="dashboard.jsx"></script>
+  <script type="text/babel" src="chatbot.jsx"></script>
+  <script type="text/babel" src="ragmanage.jsx"></script>
+  <script type="text/babel" src="app.jsx"></script>
+
+  <template id="__bundler_thumbnail">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="20" fill="#0F1013"/>
+      <rect x="30" y="30" width="40" height="40" rx="9" fill="#214290"/>
+      <path d="M40 50 h20 M40 44 h20 M40 56 h12" stroke="#2993D1" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+  </template>
+</body>
+</html>

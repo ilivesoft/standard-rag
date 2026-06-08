@@ -1,5 +1,5 @@
 # LLM 응답 생성 모듈 - Ollama/OpenAI 지원, LangChain LCEL 기반
-from langchain_community.chat_models import ChatOllama
+from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.output_parsers import StrOutputParser

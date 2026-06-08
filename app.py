@@ -273,15 +273,19 @@ def _unlock_input() -> gr.update:
 def create_demo() -> gr.Blocks:
     """Gradio 데모 UI를 생성합니다."""
     css = """
-    #conv-list thead { display: none !important; }
-    #conv-list td:nth-child(3),
-    #conv-list th:nth-child(3) { display: none !important; }
-    #conv-list td:nth-child(2) { width: 30px !important; min-width: 30px !important; max-width: 30px !important; text-align: center !important; opacity: 0; cursor: pointer !important; color: #888; transition: opacity 0.15s; padding: 0 !important; }
-    #conv-list tr:hover td:nth-child(2) { opacity: 1 !important; }
+    #conv-list .header-table { display: none !important; }
+    #conv-list .body-cell:nth-child(3) { display: none !important; }
+    #conv-list .body-cell:nth-child(2) { flex: 0 0 30px !important; width: 30px !important; min-width: 30px !important; max-width: 30px !important; text-align: center !important; opacity: 0; cursor: pointer !important; color: #888; transition: opacity 0.15s; padding: 0 !important; }
+    #conv-list .virtual-row:hover .body-cell:nth-child(2) { opacity: 1 !important; }
+    #conv-list .body-cell:nth-child(1) { flex: 1 1 0 !important; min-width: 0 !important; max-width: none !important; overflow: hidden !important; }
+    #conv-list .virtual-row { color: var(--body-text-color, #374151) !important; }
     #conv-list { --color-accent: var(--border-color-primary, #e5e7eb); --border-color-accent: var(--border-color-primary, #e5e7eb); }
-    #conv-list td:focus, #conv-list td:focus-visible, #conv-list td:focus-within { outline: none !important; box-shadow: none !important; border-color: var(--border-color-primary, #e5e7eb) !important; }
+    #conv-list .body-cell:focus, #conv-list .body-cell:focus-visible, #conv-list .body-cell:focus-within { outline: none !important; box-shadow: none !important; border-color: var(--border-color-primary, #e5e7eb) !important; }
 
     #rag-doc-table { --color-accent: var(--border-color-primary, #e5e7eb); --border-color-accent: var(--border-color-primary, #e5e7eb); }
+    #rag-doc-table .body-cell:nth-child(1) { flex: 0 0 80px !important; width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
+    #rag-doc-table .body-cell:nth-child(2) { flex: 1 1 0 !important; }
+    #rag-doc-table .body-cell:nth-child(3) { flex: 0 0 120px !important; width: 120px !important; min-width: 120px !important; max-width: 120px !important; }
     """
 
     with gr.Blocks(title="Standard RAG", css=css) as demo:
@@ -300,7 +304,7 @@ def create_demo() -> gr.Blocks:
                 rag_document_table = gr.Dataframe(
                     headers=["선택", "파일명", "청크 수"],
                     datatype=["bool", "str", "number"],
-                    column_widths=["80px", "1fr", "120px"],
+                    type="array",
                     label="인덱싱된 문서 목록 (체크 후 선택 삭제)",
                     interactive=True,
                     elem_id="rag-doc-table",
@@ -353,6 +357,8 @@ def create_demo() -> gr.Blocks:
                     with gr.Row():
                         conversation_list = gr.Dataframe(
                             headers=["제목", " ", "ID"],
+                            datatype=["str", "str", "str"],
+                            type="array",
                             interactive=False,
                             show_label=False,
                             elem_id="conv-list",

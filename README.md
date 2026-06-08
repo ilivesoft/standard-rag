@@ -92,7 +92,8 @@ APP_ENV=production PGVECTOR_PASSWORD=rag_dev_password python main.py
 
 ### 요구사항
 
-- Python 3.11 이상
+- Python 3.11 이상 (표준 CPython, Anaconda X)
+- venv (Python 내장 가상환경 관리자)
 - pip 또는 uv 패키지 매니저
 - Ollama (선택사항: 로컬 LLM 사용 시)
 - Docker (선택사항: PGVector 백엔드 사용 시)
@@ -108,17 +109,37 @@ cd standard-rag
 cp .env.example .env
 ```
 
-### 2단계: 의존성 설치
+### 2단계: 가상환경 생성 및 활성화
+
+Anaconda 대신 **표준 Python venv**를 사용합니다.
+
+```bash
+# 가상환경 생성 (Python 3.11+)
+python -m venv venv
+
+# 활성화 (Windows PowerShell)
+venv\Scripts\Activate.ps1
+
+# 활성화 (Windows CMD)
+venv\Scripts\activate.bat
+
+# 활성화 (Linux / macOS)
+source venv/bin/activate
+```
+
+### 3단계: 의존성 설치
+
+가상환경이 활성화된 상태에서 설치합니다.
 
 ```bash
 # pip를 사용하는 경우
 pip install -r requirements.txt
 
-# 또는 uv를 사용하는 경우
+# 또는 uv를 사용하는 경우 (더 빠름)
 uv pip install -r requirements.txt
 ```
 
-### 3단계: 환경 변수 설정
+### 4단계: 환경 변수 설정
 
 `.env` 파일을 편집하여 필요한 설정을 구성합니다.
 
@@ -136,7 +157,7 @@ OPENAI_API_KEY=sk-...your-api-key...
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-### 4단계: Ollama 설정 (로컬 LLM 사용 시)
+### 5단계: Ollama 설정 (로컬 LLM 사용 시)
 
 ```bash
 # Ollama 다운로드: https://ollama.ai
@@ -151,7 +172,7 @@ ollama pull llama3.2
 ollama pull mistral
 ```
 
-### 5단계: 서버 실행
+### 6단계: 서버 실행
 
 **FastAPI 서버 (포트 8000)**:
 ```bash
@@ -169,9 +190,21 @@ python app.py
 gradio app.py
 ```
 
+**React UI (포트 5173)** (새 터미널에서):
+```powershell
+cd frontend
+
+# 최초 1회: 의존성 설치
+npm install
+
+# 개발 서버 시작
+npm run dev
+```
+
 브라우저에서 다음 주소로 접속:
 - API 문서: http://localhost:8000/docs
 - Gradio UI: http://localhost:7860
+- React UI: http://localhost:5173
 
 ## API 사용 예시
 

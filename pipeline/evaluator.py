@@ -1,6 +1,18 @@
 # RAG 평가 모듈 - RAGAS 기반 답변 품질 평가
+import sys
+import types
 from typing import Any, Optional
 from datasets import Dataset
+
+# langchain-community 0.4.x 에서 vertexai 모듈 제거됨 → RAGAS 0.4.x 호환성 패치
+if "langchain_community.chat_models.vertexai" not in sys.modules:
+    try:
+        import langchain_community.chat_models.vertexai  # noqa: F401
+    except (ModuleNotFoundError, ImportError):
+        _stub = types.ModuleType("langchain_community.chat_models.vertexai")
+        _stub.ChatVertexAI = type("ChatVertexAI", (), {})  # type: ignore[attr-defined]
+        sys.modules["langchain_community.chat_models.vertexai"] = _stub
+
 from ragas import evaluate
 try:
     # ragas >= 0.2.x 권장 임포트 경로

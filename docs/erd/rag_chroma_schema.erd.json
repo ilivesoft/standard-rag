@@ -1,0 +1,1804 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dineug/erd-editor/main/json-schema/schema.json",
+  "version": "3.0.0",
+  "settings": {
+    "width": 2800,
+    "height": 2200,
+    "scrollTop": 0,
+    "scrollLeft": -0.7004,
+    "zoomLevel": 1,
+    "show": 431,
+    "database": 4,
+    "databaseName": "",
+    "canvasType": "ERD",
+    "language": 1,
+    "tableNameCase": 4,
+    "columnNameCase": 2,
+    "bracketType": 1,
+    "relationshipDataTypeSync": true,
+    "relationshipOptimization": false,
+    "columnOrder": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64
+    ],
+    "maxWidthComment": 200,
+    "ignoreSaveSettings": 0
+  },
+  "doc": {
+    "tableIds": [
+      "tbl-tenants",
+      "tbl-databases",
+      "tbl-collections",
+      "tbl-collection-metadata",
+      "tbl-segments",
+      "tbl-segment-metadata",
+      "tbl-embeddings",
+      "tbl-embedding-metadata",
+      "tbl-embedding-metadata-array",
+      "tbl-embeddings-queue",
+      "tbl-embedding-fts",
+      "tbl-max-seq-id"
+    ],
+    "relationshipIds": [
+      "rel-db-tenant",
+      "rel-col-db",
+      "rel-seg-col",
+      "rel-colmeta-col",
+      "rel-segmeta-seg",
+      "rel-emb-seg",
+      "rel-maxseq-seg",
+      "rel-embmeta-emb",
+      "rel-embmetaarr-emb"
+    ],
+    "indexIds": [],
+    "memoIds": [
+      "memo-overview"
+    ]
+  },
+  "collections": {
+    "tableEntities": {
+      "tbl-tenants": {
+        "id": "tbl-tenants",
+        "name": "tenants",
+        "comment": "최상위 멀티테넌트 식별",
+        "columnIds": [
+          "col-t-id"
+        ],
+        "seqColumnIds": [
+          "col-t-id"
+        ],
+        "ui": {
+          "x": 10.4981,
+          "y": 23.1818,
+          "zIndex": 2,
+          "widthName": 60,
+          "widthComment": 129,
+          "color": "#6B7280"
+        },
+        "meta": {
+          "updateAt": 1775720570309,
+          "createAt": 1775654642532
+        }
+      },
+      "tbl-databases": {
+        "id": "tbl-databases",
+        "name": "databases",
+        "comment": "테넌트별 논리 데이터베이스",
+        "columnIds": [
+          "col-d-id",
+          "col-d-name",
+          "col-d-tenantid"
+        ],
+        "seqColumnIds": [
+          "col-d-id",
+          "col-d-name",
+          "col-d-tenantid"
+        ],
+        "ui": {
+          "x": 24.8726,
+          "y": 177.6528,
+          "zIndex": 2,
+          "widthName": 60,
+          "widthComment": 153,
+          "color": "#6B7280"
+        },
+        "meta": {
+          "updateAt": 1775720572325,
+          "createAt": 1775654642532
+        }
+      },
+      "tbl-collections": {
+        "id": "tbl-collections",
+        "name": "collections",
+        "comment": "벡터 컬렉션 정의 (HNSW cosine, dim=1024)",
+        "columnIds": [
+          "col-c-id",
+          "col-c-name",
+          "col-c-dimension",
+          "col-c-dbid",
+          "col-c-configjson",
+          "col-c-schemastr"
+        ],
+        "seqColumnIds": [
+          "col-c-id",
+          "col-c-name",
+          "col-c-dimension",
+          "col-c-dbid",
+          "col-c-configjson",
+          "col-c-schemastr"
+        ],
+        "ui": {
+          "x": 650.6769,
+          "y": 24.9315,
+          "zIndex": 2,
+          "widthName": 60,
+          "widthComment": 235,
+          "color": "#2563EB"
+        },
+        "meta": {
+          "updateAt": 1775789260912,
+          "createAt": 1775654642532
+        }
+      },
+      "tbl-collection-metadata": {
+        "id": "tbl-collection-metadata",
+        "name": "collection_metadata",
+        "comment": "컬렉션 키-값 메타데이터 (EAV)",
+        "columnIds": [
+          "col-cm-colid",
+          "col-cm-key",
+          "col-cm-strval",
+          "col-cm-intval",
+          "col-cm-floatval",
+          "col-cm-boolval"
+        ],
+        "seqColumnIds": [
+          "col-cm-colid",
+          "col-cm-key",
+          "col-cm-strval",
+          "col-cm-intval",
+          "col-cm-floatval",
+          "col-cm-boolval"
+        ],
+        "ui": {
+          "x": 1295.5681,
+          "y": 24.9315,
+          "zIndex": 2,
+          "widthName": 108,
+          "widthComment": 164,
+          "color": "#2563EB"
+        },
+        "meta": {
+          "updateAt": 1775789258137,
+          "createAt": 1775654642532
+        }
+      },
+      "tbl-segments": {
+        "id": "tbl-segments",
+        "name": "segments",
+        "comment": "HNSW 벡터 / SQLite 메타데이터 세그먼트",
+        "columnIds": [
+          "col-s-id",
+          "col-s-type",
+          "col-s-scope",
+          "col-s-collection"
+        ],
+        "seqColumnIds": [
+          "col-s-id",
+          "col-s-type",
+          "col-s-scope",
+          "col-s-collection"
+        ],
+        "ui": {
+          "x": 659.8953,
+          "y": 387.8339,
+          "zIndex": 2,
+          "widthName": 60,
+          "widthComment": 225,
+          "color": "#16A34A"
+        },
+        "meta": {
+          "updateAt": 1775721412309,
+          "createAt": 1775654642532
+        }
+      },
+      "tbl-segment-metadata": {
+        "id": "tbl-segment-metadata",
+        "name": "segment_metadata",
+        "comment": "세그먼트 키-값 메타데이터 (EAV)",
+        "columnIds": [
+          "col-sm-segid",
+          "col-sm-key",
+          "col-sm-strval",
+          "col-sm-intval",
+          "col-sm-floatval",
+          "col-sm-boolval"
+        ],
+        "seqColumnIds": [
+          "col-sm-segid",
+          "col-sm-key",
+          "col-sm-strval",
+          "col-sm-intval",
+          "col-sm-floatval",
+          "col-sm-boolval"
+        ],
+        "ui": {
+          "x": 1301.5793,
+          "y": 373.0629,
+          "zIndex": 2,
+          "widthName": 103,
+          "widthComment": 176,
+          "color": "#16A34A"
+        },
+        "meta": {
+          "updateAt": 1775789267549,
+          "createAt": 1775654642532
+        }
+      },
+      "tbl-embeddings": {
+        "id": "tbl-embeddings",
+        "name": "embeddings",
+        "comment": "임베딩 레코드 (segment별 UNIQUE embedding_id)",
+        "columnIds": [
+          "col-e-id",
+          "col-e-segid",
+          "col-e-embid",
+          "col-e-seqid",
+          "col-e-createdat"
+        ],
+        "seqColumnIds": [
+          "col-e-id",
+          "col-e-segid",
+          "col-e-embid",
+          "col-e-seqid",
+          "col-e-createdat"
+        ],
+        "ui": {
+          "x": 656.4318,
+          "y": 654.4385,
+          "zIndex": 2,
+          "widthName": 68,
+          "widthComment": 272,
+          "color": "#DC2626"
+        },
+        "meta": {
+          "updateAt": 1775805734328,
+          "createAt": 1775654642532
+        }
+      },
+      "tbl-embedding-metadata": {
+        "id": "tbl-embedding-metadata",
+        "name": "embedding_metadata",
+        "comment": "임베딩별 키-값 메타 (source, chunk_index 등 EAV)",
+        "columnIds": [
+          "col-em-id",
+          "col-em-key",
+          "col-em-strval",
+          "col-em-intval",
+          "col-em-floatval",
+          "col-em-boolval"
+        ],
+        "seqColumnIds": [
+          "col-em-id",
+          "col-em-key",
+          "col-em-strval",
+          "col-em-intval",
+          "col-em-floatval",
+          "col-em-boolval"
+        ],
+        "ui": {
+          "x": 728.0014,
+          "y": 940.1583,
+          "zIndex": 2,
+          "widthName": 118,
+          "widthComment": 265,
+          "color": "#9333EA"
+        },
+        "meta": {
+          "updateAt": 1775721600321,
+          "createAt": 1775654642532
+        }
+      },
+      "tbl-embedding-metadata-array": {
+        "id": "tbl-embedding-metadata-array",
+        "name": "embedding_metadata_array",
+        "comment": "임베딩별 배열 메타데이터 (비PK, 중복 키 허용)",
+        "columnIds": [
+          "col-ema-id",
+          "col-ema-key",
+          "col-ema-strval",
+          "col-ema-intval",
+          "col-ema-floatval",
+          "col-ema-boolval"
+        ],
+        "seqColumnIds": [
+          "col-ema-id",
+          "col-ema-key",
+          "col-ema-strval",
+          "col-ema-intval",
+          "col-ema-floatval",
+          "col-ema-boolval"
+        ],
+        "ui": {
+          "x": 1338.9841,
+          "y": 694.2475,
+          "zIndex": 2,
+          "widthName": 149,
+          "widthComment": 249,
+          "color": "#9333EA"
+        },
+        "meta": {
+          "updateAt": 1775806527535,
+          "createAt": 1775654642532
+        }
+      },
+      "tbl-embeddings-queue": {
+        "id": "tbl-embeddings-queue",
+        "name": "embeddings_queue",
+        "comment": "임베딩 작업 큐 (ADD/UPDATE/DELETE 오퍼레이션)",
+        "columnIds": [
+          "col-eq-seqid",
+          "col-eq-createdat",
+          "col-eq-operation",
+          "col-eq-topic",
+          "col-eq-id",
+          "col-eq-vector",
+          "col-eq-encoding",
+          "col-eq-metadata"
+        ],
+        "seqColumnIds": [
+          "col-eq-seqid",
+          "YQH4EQA8jk6Sxvm-YkZ0n",
+          "col-eq-createdat",
+          "col-eq-operation",
+          "col-eq-topic",
+          "col-eq-id",
+          "col-eq-vector",
+          "col-eq-encoding",
+          "col-eq-metadata"
+        ],
+        "ui": {
+          "x": 26.3534,
+          "y": 657.4827,
+          "zIndex": 2,
+          "widthName": 106,
+          "widthComment": 269,
+          "color": "#EA580C"
+        },
+        "meta": {
+          "updateAt": 1775805734328,
+          "createAt": 1775654642532
+        }
+      },
+      "tbl-embedding-fts": {
+        "id": "tbl-embedding-fts",
+        "name": "embedding_fulltext_search",
+        "comment": "FTS5 전문 검색 (trigram 토크나이저)",
+        "columnIds": [
+          "col-fts-strval"
+        ],
+        "seqColumnIds": [
+          "col-fts-strval"
+        ],
+        "ui": {
+          "x": 110.6987,
+          "y": 950.4016,
+          "zIndex": 2,
+          "widthName": 143,
+          "widthComment": 194,
+          "color": "#0891B2"
+        },
+        "meta": {
+          "updateAt": 1775789208034,
+          "createAt": 1775654642532
+        }
+      },
+      "tbl-max-seq-id": {
+        "id": "tbl-max-seq-id",
+        "name": "max_seq_id",
+        "comment": "세그먼트별 최대 시퀀스 ID (동시성 제어)",
+        "columnIds": [
+          "col-ms-segid",
+          "col-ms-seqid"
+        ],
+        "seqColumnIds": [
+          "col-ms-segid",
+          "col-ms-seqid"
+        ],
+        "ui": {
+          "x": 40.1612,
+          "y": 387.0024,
+          "zIndex": 2,
+          "widthName": 62,
+          "widthComment": 217,
+          "color": "#CA8A04"
+        },
+        "meta": {
+          "updateAt": 1775721590315,
+          "createAt": 1775654642532
+        }
+      }
+    },
+    "tableColumnEntities": {
+      "col-t-id": {
+        "id": "col-t-id",
+        "tableId": "tbl-tenants",
+        "name": "id",
+        "comment": "테넌트 고유 ID (예: default_tenant)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 9,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 185,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-d-id": {
+        "id": "col-d-id",
+        "tableId": "tbl-databases",
+        "name": "id",
+        "comment": "데이터베이스 고유 ID (UUID)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 9,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 155,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-d-name": {
+        "id": "col-d-name",
+        "tableId": "tbl-databases",
+        "name": "name",
+        "comment": "DB 이름 (테넌트 내 UNIQUE)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 1,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 153,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-d-tenantid": {
+        "id": "col-d-tenantid",
+        "tableId": "tbl-databases",
+        "name": "tenant_id",
+        "comment": "소속 테넌트 (FK, ON DELETE CASCADE)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 1,
+        "ui": {
+          "keys": 2,
+          "widthName": 60,
+          "widthComment": 209,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-c-id": {
+        "id": "col-c-id",
+        "tableId": "tbl-collections",
+        "name": "id",
+        "comment": "컬렉션 고유 ID (UUID)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 9,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 119,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-c-name": {
+        "id": "col-c-name",
+        "tableId": "tbl-collections",
+        "name": "name",
+        "comment": "컬렉션 이름 (DB 내 UNIQUE)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 1,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 153,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-c-dimension": {
+        "id": "col-c-dimension",
+        "tableId": "tbl-collections",
+        "name": "dimension",
+        "comment": "벡터 차원 수 (1024, NULL=미정)",
+        "dataType": "INTEGER",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 172,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-c-dbid": {
+        "id": "col-c-dbid",
+        "tableId": "tbl-collections",
+        "name": "database_id",
+        "comment": "소속 DB (FK, ON DELETE CASCADE)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 1,
+        "ui": {
+          "keys": 2,
+          "widthName": 65,
+          "widthComment": 188,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-c-configjson": {
+        "id": "col-c-configjson",
+        "tableId": "tbl-collections",
+        "name": "config_json_str",
+        "comment": "컬렉션 설정 JSON",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 80,
+          "widthComment": 97,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-c-schemastr": {
+        "id": "col-c-schemastr",
+        "tableId": "tbl-collections",
+        "name": "schema_str",
+        "comment": "인덱스/벡터 스키마 JSON (HNSW, FTS 설정)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 235,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-cm-colid": {
+        "id": "col-cm-colid",
+        "tableId": "tbl-collection-metadata",
+        "name": "collection_id",
+        "comment": "컬렉션 ID (FK, 복합 PK)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 9,
+        "ui": {
+          "keys": 2,
+          "widthName": 68,
+          "widthComment": 123,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-cm-key": {
+        "id": "col-cm-key",
+        "tableId": "tbl-collection-metadata",
+        "name": "key",
+        "comment": "메타데이터 키",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 9,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 77,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-cm-strval": {
+        "id": "col-cm-strval",
+        "tableId": "tbl-collection-metadata",
+        "name": "str_value",
+        "comment": "문자열 값",
+        "dataType": "TEXT",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-cm-intval": {
+        "id": "col-cm-intval",
+        "tableId": "tbl-collection-metadata",
+        "name": "int_value",
+        "comment": "정수 값",
+        "dataType": "INTEGER",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-cm-floatval": {
+        "id": "col-cm-floatval",
+        "tableId": "tbl-collection-metadata",
+        "name": "float_value",
+        "comment": "실수 값",
+        "dataType": "REAL",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-cm-boolval": {
+        "id": "col-cm-boolval",
+        "tableId": "tbl-collection-metadata",
+        "name": "bool_value",
+        "comment": "불리언 값 (0/1)",
+        "dataType": "INTEGER",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 81,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-s-id": {
+        "id": "col-s-id",
+        "tableId": "tbl-segments",
+        "name": "id",
+        "comment": "세그먼트 고유 ID (UUID)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 9,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 131,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-s-type": {
+        "id": "col-s-type",
+        "tableId": "tbl-segments",
+        "name": "type",
+        "comment": "urn:chroma:segment/vector/hnsw-local-persisted 등",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 1,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 278,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-s-scope": {
+        "id": "col-s-scope",
+        "tableId": "tbl-segments",
+        "name": "scope",
+        "comment": "VECTOR / METADATA",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 1,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 114,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-s-collection": {
+        "id": "col-s-collection",
+        "tableId": "tbl-segments",
+        "name": "collection",
+        "comment": "소속 컬렉션 ID (FK)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 1,
+        "ui": {
+          "keys": 2,
+          "widthName": 60,
+          "widthComment": 104,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-sm-segid": {
+        "id": "col-sm-segid",
+        "tableId": "tbl-segment-metadata",
+        "name": "segment_id",
+        "comment": "세그먼트 ID (FK, 복합 PK, CASCADE)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 9,
+        "ui": {
+          "keys": 2,
+          "widthName": 63,
+          "widthComment": 192,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-sm-key": {
+        "id": "col-sm-key",
+        "tableId": "tbl-segment-metadata",
+        "name": "key",
+        "comment": "메타데이터 키",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 9,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 77,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-sm-strval": {
+        "id": "col-sm-strval",
+        "tableId": "tbl-segment-metadata",
+        "name": "str_value",
+        "comment": "문자열 값",
+        "dataType": "TEXT",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-sm-intval": {
+        "id": "col-sm-intval",
+        "tableId": "tbl-segment-metadata",
+        "name": "int_value",
+        "comment": "정수 값",
+        "dataType": "INTEGER",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-sm-floatval": {
+        "id": "col-sm-floatval",
+        "tableId": "tbl-segment-metadata",
+        "name": "float_value",
+        "comment": "실수 값",
+        "dataType": "REAL",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-sm-boolval": {
+        "id": "col-sm-boolval",
+        "tableId": "tbl-segment-metadata",
+        "name": "bool_value",
+        "comment": "불리언 값 (0/1)",
+        "dataType": "INTEGER",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 81,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-e-id": {
+        "id": "col-e-id",
+        "tableId": "tbl-embeddings",
+        "name": "id",
+        "comment": "자동 증가 PK (INTEGER)",
+        "dataType": "INTEGER",
+        "default": "",
+        "options": 11,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 127,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775805682130,
+          "createAt": 1775654642532
+        }
+      },
+      "col-e-segid": {
+        "id": "col-e-segid",
+        "tableId": "tbl-embeddings",
+        "name": "segment_id",
+        "comment": "소속 세그먼트 (논리 FK, UNIQUE 복합)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 1,
+        "ui": {
+          "keys": 2,
+          "widthName": 63,
+          "widthComment": 205,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-e-embid": {
+        "id": "col-e-embid",
+        "tableId": "tbl-embeddings",
+        "name": "embedding_id",
+        "comment": "임베딩 논리 ID (UUID, segment 내 UNIQUE)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 1,
+        "ui": {
+          "keys": 0,
+          "widthName": 78,
+          "widthComment": 233,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-e-seqid": {
+        "id": "col-e-seqid",
+        "tableId": "tbl-embeddings",
+        "name": "seq_id",
+        "comment": "삽입 순서 시퀀스 (BLOB, 단조 증가)",
+        "dataType": "BLOB",
+        "default": "",
+        "options": 1,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 188,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-e-createdat": {
+        "id": "col-e-createdat",
+        "tableId": "tbl-embeddings",
+        "name": "created_at",
+        "comment": "레코드 생성 시각",
+        "dataType": "TIMESTAMP",
+        "default": "CURRENT_TIMESTAMP",
+        "options": 1,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 93,
+          "widthDataType": 65,
+          "widthDefault": 122
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-em-id": {
+        "id": "col-em-id",
+        "tableId": "tbl-embedding-metadata",
+        "name": "id",
+        "comment": "임베딩 PK (FK, 복합 PK)",
+        "dataType": "INTEGER",
+        "default": "",
+        "options": 9,
+        "ui": {
+          "keys": 2,
+          "widthName": 60,
+          "widthComment": 125,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775805039088,
+          "createAt": 1775654642532
+        }
+      },
+      "col-em-key": {
+        "id": "col-em-key",
+        "tableId": "tbl-embedding-metadata",
+        "name": "key",
+        "comment": "메타키 (source, chunk_index, page 등)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 11,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 202,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775805053869,
+          "createAt": 1775654642532
+        }
+      },
+      "col-em-strval": {
+        "id": "col-em-strval",
+        "tableId": "tbl-embedding-metadata",
+        "name": "string_value",
+        "comment": "문자열 값 (예: source=\"doc.pdf\")",
+        "dataType": "TEXT",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 65,
+          "widthComment": 174,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-em-intval": {
+        "id": "col-em-intval",
+        "tableId": "tbl-embedding-metadata",
+        "name": "int_value",
+        "comment": "정수 값 (예: chunk_index=3)",
+        "dataType": "INTEGER",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 150,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-em-floatval": {
+        "id": "col-em-floatval",
+        "tableId": "tbl-embedding-metadata",
+        "name": "float_value",
+        "comment": "실수 값",
+        "dataType": "REAL",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-em-boolval": {
+        "id": "col-em-boolval",
+        "tableId": "tbl-embedding-metadata",
+        "name": "bool_value",
+        "comment": "불리언 값 (0/1)",
+        "dataType": "INTEGER",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 81,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-ema-id": {
+        "id": "col-ema-id",
+        "tableId": "tbl-embedding-metadata-array",
+        "name": "id",
+        "comment": "임베딩 PK (FK, NOT NULL)",
+        "dataType": "INTEGER",
+        "default": "",
+        "options": 11,
+        "ui": {
+          "keys": 3,
+          "widthName": 60,
+          "widthComment": 140,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775805466806,
+          "createAt": 1775654642532
+        }
+      },
+      "col-ema-key": {
+        "id": "col-ema-key",
+        "tableId": "tbl-embedding-metadata-array",
+        "name": "key",
+        "comment": "메타키 (중복 키 허용)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 1,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 115,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-ema-strval": {
+        "id": "col-ema-strval",
+        "tableId": "tbl-embedding-metadata-array",
+        "name": "string_value",
+        "comment": "문자열 값",
+        "dataType": "TEXT",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 65,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-ema-intval": {
+        "id": "col-ema-intval",
+        "tableId": "tbl-embedding-metadata-array",
+        "name": "int_value",
+        "comment": "정수 값",
+        "dataType": "INTEGER",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-ema-floatval": {
+        "id": "col-ema-floatval",
+        "tableId": "tbl-embedding-metadata-array",
+        "name": "float_value",
+        "comment": "실수 값",
+        "dataType": "REAL",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-ema-boolval": {
+        "id": "col-ema-boolval",
+        "tableId": "tbl-embedding-metadata-array",
+        "name": "bool_value",
+        "comment": "불리언 값 (0/1)",
+        "dataType": "INTEGER",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 81,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-eq-seqid": {
+        "id": "col-eq-seqid",
+        "tableId": "tbl-embeddings-queue",
+        "name": "seq_id",
+        "comment": "큐 시퀀스 PK (자동 증가 INTEGER)",
+        "dataType": "INTEGER",
+        "default": "",
+        "options": 11,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 181,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775806102039,
+          "createAt": 1775654642532
+        }
+      },
+      "col-eq-createdat": {
+        "id": "col-eq-createdat",
+        "tableId": "tbl-embeddings-queue",
+        "name": "created_at",
+        "comment": "큐 삽입 시각",
+        "dataType": "TIMESTAMP",
+        "default": "CURRENT_TIMESTAMP",
+        "options": 1,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 69,
+          "widthDataType": 65,
+          "widthDefault": 122
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-eq-operation": {
+        "id": "col-eq-operation",
+        "tableId": "tbl-embeddings-queue",
+        "name": "operation",
+        "comment": "작업 유형 (ADD=0, UPDATE=1, UPSERT=2, DELETE=3)",
+        "dataType": "INTEGER",
+        "default": "",
+        "options": 1,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 286,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-eq-topic": {
+        "id": "col-eq-topic",
+        "tableId": "tbl-embeddings-queue",
+        "name": "topic",
+        "comment": "대상 컬렉션 토픽 경로",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 1,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 120,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-eq-id": {
+        "id": "col-eq-id",
+        "tableId": "tbl-embeddings-queue",
+        "name": "id",
+        "comment": "임베딩 논리 ID",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 1,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 80,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-eq-vector": {
+        "id": "col-eq-vector",
+        "tableId": "tbl-embeddings-queue",
+        "name": "vector",
+        "comment": "float32 벡터 바이너리",
+        "dataType": "BLOB",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 117,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-eq-encoding": {
+        "id": "col-eq-encoding",
+        "tableId": "tbl-embeddings-queue",
+        "name": "encoding",
+        "comment": "벡터 인코딩 방식",
+        "dataType": "TEXT",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 93,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-eq-metadata": {
+        "id": "col-eq-metadata",
+        "tableId": "tbl-embeddings-queue",
+        "name": "metadata",
+        "comment": "메타데이터 JSON 문자열",
+        "dataType": "TEXT",
+        "default": "NULL",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 133,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-fts-strval": {
+        "id": "col-fts-strval",
+        "tableId": "tbl-embedding-fts",
+        "name": "string_value",
+        "comment": "FTS5 전문 검색 대상 (trigram 토크나이저)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 65,
+          "widthComment": 221,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-ms-segid": {
+        "id": "col-ms-segid",
+        "tableId": "tbl-max-seq-id",
+        "name": "segment_id",
+        "comment": "세그먼트 ID (PK)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 9,
+        "ui": {
+          "keys": 2,
+          "widthName": 63,
+          "widthComment": 89,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "col-ms-seqid": {
+        "id": "col-ms-seqid",
+        "tableId": "tbl-max-seq-id",
+        "name": "seq_id",
+        "comment": "현재까지 최대 seq_id 값",
+        "dataType": "INTEGER",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 129,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "YQH4EQA8jk6Sxvm-YkZ0n": {
+        "id": "YQH4EQA8jk6Sxvm-YkZ0n",
+        "tableId": "tbl-embeddings-queue",
+        "name": "id",
+        "comment": "자동 증가 PK (INTEGER)",
+        "dataType": "INTEGER",
+        "default": "",
+        "options": 11,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 127,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1775805717485,
+          "createAt": 1775805717484
+        }
+      }
+    },
+    "relationshipEntities": {
+      "rel-db-tenant": {
+        "id": "rel-db-tenant",
+        "identification": false,
+        "relationshipType": 4,
+        "startRelationshipType": 1,
+        "start": {
+          "tableId": "tbl-tenants",
+          "columnIds": [
+            "col-t-id"
+          ],
+          "x": 255.4981,
+          "y": 103.1818,
+          "direction": 8
+        },
+        "end": {
+          "tableId": "tbl-databases",
+          "columnIds": [
+            "col-d-tenantid"
+          ],
+          "x": 277.3726,
+          "y": 177.6528,
+          "direction": 4
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "rel-col-db": {
+        "id": "rel-col-db",
+        "identification": false,
+        "relationshipType": 4,
+        "startRelationshipType": 1,
+        "start": {
+          "tableId": "tbl-databases",
+          "columnIds": [
+            "col-d-id"
+          ],
+          "x": 529.8726,
+          "y": 241.6528,
+          "direction": 2
+        },
+        "end": {
+          "tableId": "tbl-collections",
+          "columnIds": [
+            "col-c-dbid"
+          ],
+          "x": 650.6769,
+          "y": 124.9315,
+          "direction": 1
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "rel-seg-col": {
+        "id": "rel-seg-col",
+        "identification": false,
+        "relationshipType": 4,
+        "startRelationshipType": 1,
+        "start": {
+          "tableId": "tbl-collections",
+          "columnIds": [
+            "col-c-id"
+          ],
+          "x": 913.1769,
+          "y": 224.9315,
+          "direction": 8
+        },
+        "end": {
+          "tableId": "tbl-segments",
+          "columnIds": [
+            "col-s-collection"
+          ],
+          "x": 912.3953,
+          "y": 387.8339,
+          "direction": 4
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "rel-colmeta-col": {
+        "id": "rel-colmeta-col",
+        "identification": false,
+        "relationshipType": 4,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "tbl-collections",
+          "columnIds": [
+            "col-c-id"
+          ],
+          "x": 1175.6769,
+          "y": 124.9315,
+          "direction": 2
+        },
+        "end": {
+          "tableId": "tbl-collection-metadata",
+          "columnIds": [
+            "col-cm-colid"
+          ],
+          "x": 1295.5681,
+          "y": 124.9315,
+          "direction": 1
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "rel-segmeta-seg": {
+        "id": "rel-segmeta-seg",
+        "identification": false,
+        "relationshipType": 4,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "tbl-segments",
+          "columnIds": [
+            "col-s-id"
+          ],
+          "x": 1164.8953000000001,
+          "y": 463.8339,
+          "direction": 2
+        },
+        "end": {
+          "tableId": "tbl-segment-metadata",
+          "columnIds": [
+            "col-sm-segid"
+          ],
+          "x": 1301.5793,
+          "y": 473.0629,
+          "direction": 1
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "rel-emb-seg": {
+        "id": "rel-emb-seg",
+        "identification": false,
+        "relationshipType": 4,
+        "startRelationshipType": 1,
+        "start": {
+          "tableId": "tbl-segments",
+          "columnIds": [
+            "col-s-id"
+          ],
+          "x": 912.3953,
+          "y": 539.8339000000001,
+          "direction": 8
+        },
+        "end": {
+          "tableId": "tbl-embeddings",
+          "columnIds": [
+            "col-e-segid"
+          ],
+          "x": 951.4318,
+          "y": 654.4385,
+          "direction": 4
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "rel-embmeta-emb": {
+        "id": "rel-embmeta-emb",
+        "identification": false,
+        "relationshipType": 4,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "tbl-embeddings",
+          "columnIds": [
+            "col-e-id"
+          ],
+          "x": 951.4318,
+          "y": 830.4385,
+          "direction": 8
+        },
+        "end": {
+          "tableId": "tbl-embedding-metadata",
+          "columnIds": [
+            "col-em-id"
+          ],
+          "x": 983.0014,
+          "y": 940.1583,
+          "direction": 4
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "rel-embmetaarr-emb": {
+        "id": "rel-embmetaarr-emb",
+        "identification": true,
+        "relationshipType": 4,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "tbl-embeddings",
+          "columnIds": [
+            "col-e-id"
+          ],
+          "x": 1246.4317999999998,
+          "y": 742.4385,
+          "direction": 2
+        },
+        "end": {
+          "tableId": "tbl-embedding-metadata-array",
+          "columnIds": [
+            "col-ema-id"
+          ],
+          "x": 1338.9841,
+          "y": 794.2475,
+          "direction": 1
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      },
+      "rel-maxseq-seg": {
+        "id": "rel-maxseq-seg",
+        "identification": false,
+        "relationshipType": 4,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "tbl-segments",
+          "columnIds": [
+            "col-s-id"
+          ],
+          "x": 659.8953,
+          "y": 463.8339,
+          "direction": 1
+        },
+        "end": {
+          "tableId": "tbl-max-seq-id",
+          "columnIds": [
+            "col-ms-segid"
+          ],
+          "x": 477.1612,
+          "y": 439.0024,
+          "direction": 2
+        },
+        "meta": {
+          "updateAt": 1775654642532,
+          "createAt": 1775654642532
+        }
+      }
+    },
+    "indexEntities": {},
+    "indexColumnEntities": {},
+    "memoEntities": {
+      "memo-overview": {
+        "id": "memo-overview",
+        "value": "Chroma Embedding ERD (standard-rag)\n========================================\n\n저장 경로: storage/chroma/\n  chroma.sqlite3 -> 메타+임베딩 레코드\n  <segment-uuid>/ -> HNSW 인덱스 바이너리\n\n계층 구조:\n  tenants -> databases -> collections -> segments\n                                      -> embeddings (via queue)\n\nVectorStore.add() 흐름:\n  1. embeddings_queue에 ADD 오퍼레이션 삽입\n  2. segment로 flush -> embeddings 테이블 생성\n  3. metadata -> embedding_metadata (EAV)\n  4. HNSW 인덱스 -> segment 파일 저장\n\nVectorStore.search() 흐름:\n  query -> BAAI/bge-m3 (dim=1024) -> HNSW cosine\n  distance -> score = 1 - distance\n\n주요 메타데이터 키:\n  source      : 원본 파일 경로\n  chunk_index : 청크 순서 번호\n  page        : 페이지 번호 (선택)\n\n인덱스:\n  embedding_metadata: (key, string_value), (key, int_value), (key, float_value)\n  embedding_metadata_array: (id, key), (key, string/int/float)\n\nFTS5:\n  embedding_fulltext_search: trigram 토크나이저 (string_value)\n  내부 테이블: _content, _data, _docsize, _idx, _config\n",
+        "ui": {
+          "x": 46.1846,
+          "y": 1100.786,
+          "zIndex": 1,
+          "width": 520,
+          "height": 560,
+          "color": "#FEF3C7"
+        },
+        "meta": {
+          "updateAt": 1775806441056,
+          "createAt": 1775654642532
+        }
+      }
+    }
+  }
+}

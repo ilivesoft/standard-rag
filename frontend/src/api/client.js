@@ -1,3 +1,8 @@
+export async function deleteDocument(source) {
+  const r = await fetch(`/index/documents/${encodeURIComponent(source)}`, { method: 'DELETE' });
+  return r.ok;
+}
+
 export async function fetchDocuments() {
   const r = await fetch('/index/documents');
   if (!r.ok) return [];
@@ -107,6 +112,16 @@ export async function runEvaluate(questions) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ questions })
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+export async function runEvaluateBatch(items) {
+  const r = await fetch('/evaluate/batch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items })
   });
   if (!r.ok) throw new Error(await r.text());
   return r.json();

@@ -283,9 +283,9 @@ def create_demo() -> gr.Blocks:
     #conv-list .body-cell:focus, #conv-list .body-cell:focus-visible, #conv-list .body-cell:focus-within { outline: none !important; box-shadow: none !important; border-color: var(--border-color-primary, #e5e7eb) !important; }
 
     #rag-doc-table { --color-accent: var(--border-color-primary, #e5e7eb); --border-color-accent: var(--border-color-primary, #e5e7eb); }
-    #rag-doc-table .body-cell:nth-child(1) { flex: 0 0 80px !important; width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
-    #rag-doc-table .body-cell:nth-child(2) { flex: 1 1 0 !important; }
-    #rag-doc-table .body-cell:nth-child(3) { flex: 0 0 120px !important; width: 120px !important; min-width: 120px !important; max-width: 120px !important; }
+    #rag-doc-table .header-cell:nth-child(1), #rag-doc-table .body-cell:nth-child(1) { flex: 0 0 80px !important; width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
+    #rag-doc-table .header-cell:nth-child(2), #rag-doc-table .body-cell:nth-child(2) { flex: 1 1 0 !important; }
+    #rag-doc-table .header-cell:nth-child(3), #rag-doc-table .body-cell:nth-child(3) { flex: 0 0 120px !important; width: 120px !important; min-width: 120px !important; max-width: 120px !important; }
     """
 
     with gr.Blocks(title="Standard RAG", css=css) as demo:

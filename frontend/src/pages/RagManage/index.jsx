@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SegTabs } from '../../components/ui/SegTabs.jsx';
 import { DocsSection } from './DocsSection.jsx';
 import { CollectionsSection } from './CollectionsSection.jsx';
@@ -13,11 +13,18 @@ const tabs = [
 ];
 
 export function RagPage({ section, setSection }) {
+  const [docsColl, setDocsColl] = useState('all');
+
+  function handleViewCollection(collName) {
+    setDocsColl(collName);
+    setSection('docs');
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       <SegTabs tabs={tabs} value={section} onChange={setSection} />
-      {section === 'docs'        && <DocsSection />}
-      {section === 'collections' && <CollectionsSection />}
+      {section === 'docs'        && <DocsSection initialColl={docsColl} onCollChange={setDocsColl} />}
+      {section === 'collections' && <CollectionsSection onView={handleViewCollection} />}
       {section === 'settings'    && <SettingsSection />}
       {section === 'eval'        && <EvalSection />}
     </div>

@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Ico } from '../../components/ui/Ico.jsx';
 import { Slider } from '../../components/ui/Slider.jsx';
+import { useToast } from '../../components/ui/Toast.jsx';
+
+const STORAGE_KEY = 'rag_settings';
+const DEFAULTS = { chunkSize: 512, overlap: 64, device: 'cpu', topK: 10, topN: 3, alpha: 0.5 };
 
 function Field({ label, value, mono }) {
   return (
@@ -12,12 +16,48 @@ function Field({ label, value, mono }) {
 }
 
 export function SettingsSection() {
-  const [chunkSize, setChunkSize] = useState(512);
-  const [overlap, setOverlap] = useState(64);
-  const [device, setDevice] = useState('cpu');
-  const [topK, setTopK] = useState(10);
-  const [topN, setTopN] = useState(3);
-  const [alpha, setAlpha] = useState(0.5);
+  const toast = useToast();
+  const [chunkSize, setChunkSize] = useState(DEFAULTS.chunkSize);
+  const [overlap, setOverlap] = useState(DEFAULTS.overlap);
+  const [device, setDevice] = useState(DEFAULTS.device);
+  const [topK, setTopK] = useState(DEFAULTS.topK);
+  const [topN, setTopN] = useState(DEFAULTS.topN);
+  const [alpha, setAlpha] = useState(DEFAULTS.alpha);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.chunkSize != null) setChunkSize(p.chunkSize);
+        if (p.overlap   != null) setOverlap(p.overlap);
+        if (p.device    != null) setDevice(p.device);
+        if (p.topK      != null) setTopK(p.topK);
+        if (p.topN      != null) setTopN(p.topN);
+        if (p.alpha     != null) setAlpha(p.alpha);
+      }
+    } catch {}
+  }, []);
+
+  function handleSave() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ chunkSize, overlap, device, topK, topN, alpha }));
+      toast('설정이 저장되었습니다.', 'success');
+    } catch {
+      toast('설정 저장에 실패했습니다.', 'error');
+    }
+  }
+
+  function handleReset() {
+    setChunkSize(DEFAULTS.chunkSize);
+    setOverlap(DEFAULTS.overlap);
+    setDevice(DEFAULTS.device);
+    setTopK(DEFAULTS.topK);
+    setTopN(DEFAULTS.topN);
+    setAlpha(DEFAULTS.alpha);
+    localStorage.removeItem(STORAGE_KEY);
+    toast('기본값으로 복원되었습니다.', 'info');
+  }
 
   function block(title, en, glyph, children) {
     return (
@@ -70,8 +110,8 @@ export function SettingsSection() {
         </div>
       ))}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-        <button className="il-btn-ghost">기본값 복원</button>
-        <button className="il-btn-follow" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+        <button className="il-btn-ghost" onClick={handleReset}>기본값 복원</button>
+        <button className="il-btn-follow" onClick={handleSave} style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
           <Ico name="save" size={18} /> 설정 저장
         </button>
       </div>
